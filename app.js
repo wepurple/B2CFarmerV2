@@ -68,30 +68,10 @@ app.set("trust proxy", 1);
 //
 // Pour la production, nous utilisons connect-pg-simple pour stocker
 // les sessions en base PostgreSQL plutôt qu'en mémoire.
+// On réutilise le pool partagé (src/config/pool.js) pour éviter d'ouvrir
+// des connexions supplémentaires — critique sur Vercel (serverless) + Supabase.
 const pgSession = require("connect-pg-simple")(session);
-const { Pool } = require("pg");
-
-// Pool PostgreSQL dédié pour les sessions (partagé, mais limité)
-const sessionPool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-  // Options optimisées pour Vercel
-  max: process.env.NODE_ENV === "production" ? 3 : 10,
-  idleTimeoutMillis: process.env.NODE_ENV === "production" ? 10000 : 30000,
-  connectionTimeoutMillis: 5000,
-});
-
-// Gestion des erreurs pool
-sessionPool.on("error", (err) => {
-  console.error("❌ Erreur pool sessions PostgreSQL:", err.message);
-});
+const pgPool = require("./src/config/pool"); // Pool brut pg (pas le PoolAdapter)
 
 app.use(
   session({
@@ -101,7 +81,7 @@ app.use(
 
     // Store les sessions en PostgreSQL (création automatique de la table)
     store: new pgSession({
-      pool: sessionPool,
+      pool: pgPool,
       tableName: "session", // Table où sont stockées les sessions
       createTableIfMissing: true,
     }),

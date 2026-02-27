@@ -20,9 +20,9 @@ const poolConfig = {
       ? { rejectUnauthorized: false }
       : false,
 
-  // Options pour Vercel / serverless
-  // maxConnections peu élevé pour ne pas déépasser les limites Supabase
-  max: process.env.NODE_ENV === "production" ? 5 : 20,
+  // Vercel = serverless : chaque invocation est un process isolé.
+  // max: 1 en production évite d'épuiser le pool Supabase (limite Session mode).
+  max: process.env.NODE_ENV === "production" ? 1 : 10,
 
   // Vercel: keep-alive important
   idleTimeoutMillis: process.env.NODE_ENV === "production" ? 10000 : 30000,
