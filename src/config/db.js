@@ -1,21 +1,4 @@
-const { Pool } = require("pg");
-
-const pgPool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-});
-
-// Event listeners pour gérer les erreurs
-pgPool.on("error", (err) => {
-  console.error("Erreur non gérée dans le pool PostgreSQL:", err);
-});
+const pgPool = require("./pool"); // Pool PostgreSQL partagé (Pool brut de pg)
 
 /**
  * Adaptateur pour converter la syntaxe MySQL (? comme placeholders)
@@ -78,7 +61,6 @@ class PoolAdapter {
       },
     };
   }
-
 }
 
 const pool = new PoolAdapter(pgPool);
