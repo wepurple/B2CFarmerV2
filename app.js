@@ -53,6 +53,12 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 // Les données sont accessibles dans req.body (ex: req.body.email)
 app.use(express.urlencoded({ extended: true }));
 
+// ── Trust proxy (Vercel / reverse proxy) ─────────────────────
+// Vercel termine le SSL et transmet les requêtes en HTTP interne.
+// Sans ce paramètre, req.secure = false et express-session ne pose
+// jamais le cookie de session (cookie.secure: true ignoré côté client).
+app.set("trust proxy", 1);
+
 // ── 4) Sessions utilisateur ──────────────────────────────────
 // Une session est une façon de mémoriser qu'un utilisateur est connecté
 // entre plusieurs requêtes HTTP (car HTTP est "sans état" par défaut).
