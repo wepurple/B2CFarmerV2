@@ -1,16 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm install",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
-  "routes": [
+  "builds": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
     {
       "src": "/(.*)",
       "dest": "api/index.js"
