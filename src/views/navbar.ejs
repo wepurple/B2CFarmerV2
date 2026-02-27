@@ -226,4 +226,16 @@
     }
 
   });
-</script>
+
+  // ── Vercel Speed Insights ────────────────────────────────────
+  // Suivi des performances du site en production (Vercel)
+  // Voir https://vercel.com/docs/speed-insights
+  (function() {
+    if (typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = '/_vercel/insights/script.js';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  })();
