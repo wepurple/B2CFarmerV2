@@ -230,8 +230,9 @@
   // ── Vercel Speed Insights ────────────────────────────────────
   // Suivi des performances du site en production (Vercel)
   // Voir https://vercel.com/docs/speed-insights
+  // Ne charge que si on n'est pas en localhost (production uniquement)
   (function() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       const script = document.createElement('script');
       script.src = '/_vercel/insights/script.js';
       script.async = true;
@@ -239,3 +240,4 @@
       document.head.appendChild(script);
     }
   })();
+</script>
