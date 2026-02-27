@@ -1,0 +1,209 @@
+<!--
+  offres/show.ejs
+  ----------------
+  Page de détail d'une offre.
+
+  Variables reçues depuis offres.controller.js > showOffre :
+    - title          : Le titre de l'offre
+    - activePage     : "offres"
+    - offre          : Objet complet :
+                       { id_offre, id_user_agri, titre, description, created_at,
+                         statut, nom_exploitation, agri_description, ville,
+                         agri_email, produits: [{libelle, prix, quantite}] }
+    - contactSuccess : true si le message vient d'être envoyé avec succès
+    - contactError   : string d'erreur, ou null
+
+  Comportement du formulaire de contact selon le rôle :
+    - Non connecté           → invitation à se connecter
+    - Particulier connecté   → formulaire de contact
+    - Agriculteur (sa propre offre) → message informatif
+    - Autre agriculteur      → pas de formulaire
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page offer-detail-page">
+      <div class="offre-detail">
+
+        <!-- Lien de retour -->
+        <a href="/offres" class="back-link">← Retour aux offres</a>
+
+        <!-- Titre de l'offre -->
+        <h1><%= offre.titre %></h1>
+
+        <!-- Informations clés en grille -->
+        <div class="offre-info">
+          <p>
+            <span class="info-label">Exploitation</span>
+            <strong><%= offre.nom_exploitation %></strong>
+          </p>
+          <p>
+            <span class="info-label">Localisation</span>
+            <%= offre.ville %>
+          </p>
+          <p>
+            <span class="info-label">Publié le</span>
+            <%= new Date(offre.created_at).toLocaleDateString('fr-FR') %>
+          </p>
+        </div>
+
+        <!-- Description de l'offre -->
+        <% if (offre.description) { %>
+          <div class="offre-section">
+            <h2>À propos de cette offre</h2>
+            <p class="offre-description-text"><%= offre.description %></p>
+          </div>
+        <% } %>
+
+        <!-- Description de l'exploitation -->
+        <% if (offre.agri_description) { %>
+          <div class="offre-section">
+            <h2>L'exploitation</h2>
+            <p class="offre-description-text"><%= offre.agri_description %></p>
+          </div>
+        <% } %>
+
+        <!-- Tableau des produits -->
+        <div class="offre-section">
+          <h2>Produits disponibles</h2>
+          <% if (offre.produits && offre.produits.length > 0) { %>
+            <table class="produits-table">
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Prix unitaire</th>
+                  <th>Quantité disponible</th>
+                  <% if (user && user.role === 'PARTICULIER') { %>
+                    <th>Commander</th>
+                  <% } %>
+                </tr>
+              </thead>
+              <tbody>
+                <% offre.produits.forEach(produit => { %>
+                  <tr>
+                    <td><strong><%= produit.libelle %></strong></td>
+                    <td class="prix-cell"><%= parseFloat(produit.prix).toFixed(2) %> €</td>
+                    <td><%= parseInt(produit.quantite) %> disponible(s)</td>
+                    <% if (user && user.role === 'PARTICULIER') { %>
+                      <td>
+                        <form action="/panier/ajouter" method="post" class="panier-add-form">
+                          <input type="hidden" name="id_offre" value="<%= offre.id_offre %>">
+                          <input type="hidden" name="id_produit" value="<%= produit.id_produit %>">
+                          <input
+                            type="number"
+                            name="quantite"
+                            value="1"
+                            min="1"
+                            class="form-input panier-qte-input"
+                          >
+                          <button type="submit" class="btn btn-sm btn-primary">Ajouter</button>
+                        </form>
+                      </td>
+                    <% } %>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p class="no-produits">Aucun produit associé à cette offre.</p>
+          <% } %>
+        </div>
+
+
+        <!-- Section de contact — comportement conditionnel selon le rôle -->
+        <div class="offre-section contact-section">
+          <h2>Contacter l'agriculteur</h2>
+
+          <!-- Alerte de succès après envoi -->
+          <% if (contactSuccess) { %>
+            <div class="alert alert-success" role="alert">
+
+              Votre message a bien été envoyé ! L'agriculteur vous répondra directement.
+            </div>
+          <% } %>
+
+          <!-- Alerte d'erreur -->
+          <% if (contactError) { %>
+            <div class="alert alert-error" role="alert">
+
+              <%= contactError %>
+            </div>
+          <% } %>
+
+          <% if (!user) { %>
+            <!-- Visiteur non connecté : invitation à se connecter -->
+            <div class="contact-prompt">
+              <p>Connectez-vous pour envoyer un message à l'agriculteur.</p>
+              <div class="contact-prompt-actions">
+                <a href="/auth/login"    class="btn btn-primary">Se connecter</a>
+                <a href="/auth/register" class="btn btn-secondary">Créer un compte</a>
+              </div>
+            </div>
+
+          <% } else if (user.role === 'PARTICULIER') { %>
+            <!-- Particulier connecté : formulaire de contact -->
+            <% if (!contactSuccess) { %>
+              <form
+                action="/offres/<%= offre.id_offre %>/contact"
+                method="post"
+                class="contact-form"
+              >
+                <div class="form-group">
+                  <label for="message" class="form-label">
+                    Votre message <span class="required">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    class="form-input form-textarea"
+                    rows="5"
+                    placeholder="Bonjour, je suis intéressé(e) par votre offre. Pourriez-vous me donner plus d'informations sur..."
+                    required
+                  ></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Envoyer le message
+                </button>
+              </form>
+            <% } %>
+
+          <% } else if (user.role === 'AGRICULTEUR' && user.id_user === offre.id_user_agri) { %>
+            <!-- L'agriculteur consulte sa propre offre — actions de gestion -->
+            <div class="contact-prompt contact-prompt-info">
+              <p>C'est votre offre. Vous pouvez la modifier ou la gérer depuis votre espace.</p>
+              <div class="contact-prompt-actions">
+                <a href="/offres/<%= offre.id_offre %>/edit" class="btn btn-primary">Modifier l'offre</a>
+                <a href="/offres/mes-offres" class="btn btn-secondary">Mes offres</a>
+                <form action="/offres/<%= offre.id_offre %>/delete" method="post" style="display:inline;"
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ?');">
+                  <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+              </div>
+            </div>
+
+          <% } else { %>
+            <!-- Autre utilisateur (agriculteur tiers) -->
+            <div class="contact-prompt">
+              <p>Le formulaire de contact est réservé aux particuliers.</p>
+            </div>
+          <% } %>
+
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!--
+  panier/checkout.ejs
+  -------------------
+  Page de récapitulatif avant validation de la commande.
+  Affiche un résumé de tous les articles du panier
+  avec les prix et le total, puis un bouton de confirmation.
+
+  Variables reçues depuis panier.controller.js > showCheckout :
+    - title      : "Valider ma commande"
+    - activePage : "panier"
+    - panier     : Tableau d'articles du panier
+    - total      : Total général de la commande
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page checkout-page">
+      <div class="checkout-container">
+
+        <!-- Lien de retour au panier -->
+        <a href="/panier" class="back-link">← Retour au panier</a>
+
+        <h1>Récapitulatif de commande</h1>
+
+        <p class="checkout-info">
+          Vérifiez votre commande avant de la valider. Une fois confirmée,
+          l'agriculteur sera notifié et traitera votre commande.
+        </p>
+
+        <!-- Tableau récapitulatif des articles -->
+        <table class="produits-table checkout-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Exploitation</th>
+              <th>Prix unitaire</th>
+              <th>Quantité</th>
+              <th>Sous-total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% panier.forEach(item => { %>
+              <tr>
+                <td><strong><%= item.libelle %></strong></td>
+                <td><%= item.nom_exploitation %></td>
+                <td class="prix-cell"><%= Number(item.prix).toFixed(2) %> € / <%= item.unite %></td>
+                <td><%= item.quantite %></td>
+                <td class="prix-cell"><%= (Number(item.prix) * Number(item.quantite)).toFixed(2) %> €</td>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" class="checkout-total-label"><strong>Total</strong></td>
+              <td class="prix-cell checkout-total-value"><strong><%= total.toFixed(2) %> €</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Actions de validation -->
+        <div class="checkout-actions">
+          <a href="/panier" class="btn btn-secondary">Modifier le panier</a>
+          <form action="/panier/valider" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-primary btn-lg">
+              Confirmer la commande
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

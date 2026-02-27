@@ -1,0 +1,376 @@
+<!--
+  register.ejs
+  ------------
+  Page d'inscription. Permet de créer un compte particulier ou agriculteur.
+
+  Variables reçues depuis le contrôleur (auth.controller.js > showRegister / handleRegister) :
+    - title      : Titre de la page
+    - activePage : Page active pour la navbar ('register')
+    - error      : Message d'erreur à afficher (null si aucune erreur)
+    - formData   : Objet contenant les valeurs déjà saisies, pour les ré-afficher
+                   en cas d'erreur (évite à l'utilisateur de tout re-saisir)
+                   Structure : { nom, prenom, email, role, nom_exploitation, siret,
+                                 adresse, code_postal, ville }
+
+  Particularité de cette page :
+    Le formulaire est "dynamique" : les champs spécifiques aux agriculteurs
+    sont cachés par défaut et s'affichent quand l'utilisateur choisit le
+    role "Agriculteur". Cela est géré par JavaScript côté client.
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include("../navbar") %>
+
+    <main class="page page-auth">
+      <div class="auth-card auth-card-wide">
+
+        <!-- En-tête -->
+        <div class="auth-card-header">
+          <h1 class="auth-title">Créer un compte</h1>
+          <p class="auth-subtitle">Rejoignez la communauté B2CFarmer</p>
+        </div>
+
+        <!-- Message d'erreur -->
+        <% if (error) { %>
+          <div class="alert alert-error" role="alert">
+            <%= error %>
+          </div>
+        <% } %>
+
+        <!--
+          Étape 1 : Choix du rôle
+          L'utilisateur choisit d'abord s'il est particulier ou agriculteur.
+          Ce choix affiche/masque les champs supplémentaires via JavaScript.
+        -->
+        <div class="role-selector">
+          <p class="role-selector-label">Je suis :</p>
+          <div class="role-cards">
+
+            <!-- Carte "Particulier" -->
+            <label class="role-card" for="role-particulier">
+              <input
+                type="radio"
+                id="role-particulier"
+                name="role_choice"
+                value="PARTICULIER"
+                class="role-radio"
+                <%= (!formData.role || formData.role === 'PARTICULIER') ? 'checked' : '' %>
+              />
+              <div class="role-card-content">
+                <strong>Particulier</strong>
+                <small>Je veux acheter ou réserver des produits frais</small>
+              </div>
+            </label>
+
+            <!-- Carte "Agriculteur" -->
+            <label class="role-card" for="role-agriculteur">
+              <input
+                type="radio"
+                id="role-agriculteur"
+                name="role_choice"
+                value="AGRICULTEUR"
+                class="role-radio"
+                <%= formData.role === 'AGRICULTEUR' ? 'checked' : '' %>
+              />
+              <div class="role-card-content">
+                <strong>Agriculteur</strong>
+                <small>Je veux publier des offres pour vendre mes produits</small>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!--
+          Le formulaire d'inscription.
+          On utilise POST /auth/register pour envoyer les données au contrôleur.
+        -->
+        <form action="/auth/register" method="post" class="auth-form" novalidate>
+
+          <!--
+            Champ caché "role" : ce champ est mis à jour par JavaScript quand
+            l'utilisateur clique sur une carte de rôle. C'est cette valeur qui
+            est envoyée au serveur (pas les boutons radio ci-dessus qui servent
+            uniquement à l'affichage).
+          -->
+          <input
+            type="hidden"
+            id="role-hidden"
+            name="role"
+            value="<%= formData.role || 'PARTICULIER' %>"
+          />
+
+          <!-- ── Informations personnelles ─────────────────── -->
+          <fieldset class="form-fieldset">
+            <legend class="form-legend">Informations personnelles</legend>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prenom" class="form-label">Prénom <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="prenom"
+                  name="prenom"
+                  class="form-input"
+                  value="<%= formData.prenom || '' %>"
+                  placeholder="Jean"
+                  autocomplete="given-name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="nom" class="form-label">Nom <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="nom"
+                  name="nom"
+                  class="form-input"
+                  value="<%= formData.nom || '' %>"
+                  placeholder="Dupont"
+                  autocomplete="family-name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email" class="form-label">Adresse e-mail <span class="required">*</span></label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-input"
+                value="<%= formData.email || '' %>"
+                placeholder="jean.dupont@email.fr"
+                autocomplete="email"
+                required
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="password" class="form-label">Mot de passe <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input"
+                    placeholder="Min. 8 caractères"
+                    autocomplete="new-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="input-eye-btn"
+                    aria-label="Afficher le mot de passe"
+                    onclick="togglePassword('password', this)"
+                  >Afficher</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirmer <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    class="form-input"
+                    placeholder="Répétez le mot de passe"
+                    autocomplete="new-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="input-eye-btn"
+                    aria-label="Afficher le mot de passe"
+                    onclick="togglePassword('confirm_password', this)"
+                  >Afficher</button>
+                </div>
+              </div>
+            </div>
+
+          </fieldset>
+
+          <!--
+            Bloc "Votre exploitation" — visible UNIQUEMENT si le rôle est AGRICULTEUR
+            L'attribut "id" permet au JavaScript de l'afficher/masquer dynamiquement
+          -->
+          <fieldset class="form-fieldset" id="agri-fields" style="display: none;">
+            <legend class="form-legend">Votre exploitation <span class="required">*</span></legend>
+
+            <div class="form-group">
+              <label for="nom_exploitation" class="form-label">Nom de l'exploitation <span class="required">*</span></label>
+              <input
+                type="text"
+                id="nom_exploitation"
+                name="nom_exploitation"
+                class="form-input"
+                value="<%= formData.nom_exploitation || '' %>"
+                placeholder="Ferme des Trois Chênes"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adresse" class="form-label">Adresse <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="adresse"
+                  name="adresse"
+                  class="form-input"
+                  value="<%= formData.adresse || '' %>"
+                  placeholder="12 chemin des Clos"
+                />
+              </div>
+              <div class="form-group">
+                <label for="siret" class="form-label">Numéro SIRET</label>
+                <input
+                  type="text"
+                  id="siret"
+                  name="siret"
+                  class="form-input"
+                  value="<%= formData.siret || '' %>"
+                  placeholder="14 chiffres"
+                  maxlength="14"
+                  inputmode="numeric"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group form-group-small">
+                <label for="code_postal" class="form-label">Code postal <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="code_postal"
+                  name="code_postal"
+                  class="form-input"
+                  value="<%= formData.code_postal || '' %>"
+                  placeholder="45000"
+                  maxlength="5"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="form-group">
+                <label for="ville" class="form-label">Ville <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="ville"
+                  name="ville"
+                  class="form-input"
+                  value="<%= formData.ville || '' %>"
+                  placeholder="Orléans"
+                />
+              </div>
+            </div>
+
+          </fieldset>
+
+          <!-- Bouton de soumission -->
+          <button type="submit" class="btn btn-primary btn-full">
+            Créer mon compte
+          </button>
+
+        </form>
+
+        <!-- Lien vers la connexion -->
+        <div class="auth-footer">
+          <p>
+            Déjà un compte ?
+            <a href="/auth/login" class="link-accent">Se connecter</a>
+          </p>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+
+    <script>
+      /**
+       * Gestion dynamique du formulaire d'inscription.
+       * Ce script s'exécute côté client (dans le navigateur).
+       * Il écoute les changements de rôle et affiche/masque
+       * les champs spécifiques aux agriculteurs.
+       */
+
+      // On récupère les éléments HTML dont on a besoin
+      const roleRadios  = document.querySelectorAll('.role-radio');  // Les boutons radio
+      const agriFields  = document.getElementById('agri-fields');    // Le bloc agriculteur
+      const hiddenRole  = document.getElementById('role-hidden');    // Le champ caché
+
+      /**
+       * Met à jour l'affichage du formulaire selon le rôle sélectionné.
+       * @param {string} role - 'PARTICULIER' ou 'AGRICULTEUR'
+       */
+      function updateFormForRole(role) {
+        // Met à jour le champ caché qui sera envoyé au serveur
+        hiddenRole.value = role;
+
+        if (role === 'AGRICULTEUR') {
+          // Affiche le bloc des champs agriculteurs
+          agriFields.style.display = 'block';
+          // Rend les champs obligatoires pour la validation HTML5
+          agriFields.querySelectorAll('input[placeholder]').forEach(input => {
+            if (input.id !== 'siret') input.required = true;
+          });
+        } else {
+          // Masque et rend les champs non-obligatoires
+          agriFields.style.display = 'none';
+          agriFields.querySelectorAll('input').forEach(input => {
+            input.required = false;
+          });
+        }
+
+        // Met à jour le style visuel des cartes de rôle
+        document.querySelectorAll('.role-card').forEach(card => {
+          const radio = card.querySelector('.role-radio');
+          card.classList.toggle('role-card-active', radio.checked);
+        });
+      }
+
+      // On écoute les changements sur les boutons radio
+      roleRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          updateFormForRole(radio.value);
+        });
+      });
+
+      // On initialise l'affichage au chargement de la page
+      // (important si la page est rechargée après une erreur)
+      const checkedRadio = document.querySelector('.role-radio:checked');
+      if (checkedRadio) {
+        updateFormForRole(checkedRadio.value);
+      }
+
+      /**
+       * Afficher/masquer le mot de passe dans un champ.
+       * @param {string} inputId - L'id du champ input
+       * @param {HTMLElement} btn - Le bouton cliqué
+       */
+      function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          btn.textContent = 'Cacher';
+          btn.setAttribute('aria-label', 'Masquer le mot de passe');
+        } else {
+          input.type = 'password';
+          btn.textContent = 'Afficher';
+          btn.setAttribute('aria-label', 'Afficher le mot de passe');
+        }
+      }
+    </script>
+  </body>
+</html>

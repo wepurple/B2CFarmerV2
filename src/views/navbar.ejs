@@ -1,0 +1,229 @@
+<!--
+  navbar.ejs
+  ----------
+  Barre de navigation partagée par toutes les pages du site.
+  Incluse dans chaque vue via : include("navbar")
+
+  Variables utilisées :
+    - activePage : Nom de la page courante ('home', 'offres', 'demandes', 'login', 'register')
+                   Permet de mettre en surbrillance le lien actif dans le menu.
+    - user       : L'utilisateur connecté (disponible via res.locals dans app.js).
+                   Vaut null si personne n'est connecté.
+                   Structure si connecté : { id_user, nom, prenom, email, role, nom_exploitation }
+
+  Comportement selon l'état de connexion :
+    - Non connecté   : affiche "Connexion" et "S'inscrire"
+    - Connecté       : affiche le prénom + menu déroulant contextuel
+      - AGRICULTEUR  : Mes offres, Déposer une offre
+      - PARTICULIER  : Mes demandes, Déposer une demande
+-->
+<% const currentPage = typeof activePage !== "undefined" ? activePage : ""; %>
+<% const user = locals.user ?? null; %>
+
+<nav class="navbar">
+  <div class="navbar-container">
+
+    <!-- Logo cliquable vers l'accueil -->
+    <a href="/" class="navbar-logo" aria-label="B2CFarmer - Accueil">
+      <span class="logo-wordmark">B2C<em>Farmer</em></span>
+    </a>
+
+    <!-- Bouton hamburger (visible sur mobile uniquement, masqué sur desktop via CSS) -->
+    <button
+      class="navbar-toggle"
+      id="navbarToggle"
+      type="button"
+      aria-label="Ouvrir le menu"
+      aria-controls="navbarMenu"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Menu de navigation principal -->
+    <ul class="navbar-menu" id="navbarMenu">
+
+      <!-- Accueil -->
+      <li class="navbar-item">
+        <a href="/" class="navbar-link <%= currentPage === 'home' ? 'is-active' : '' %>">
+          Accueil
+        </a>
+      </li>
+
+          <!-- Offres -->
+      <li class="navbar-item">
+        <a href="/offres" class="navbar-link <%= currentPage === 'offres' ? 'is-active' : '' %>">
+          Offres
+        </a>
+      </li>
+
+      <!-- Demandes (nouvelle section) -->
+      <li class="navbar-item">
+        <a href="/demandes" class="navbar-link <%= currentPage === 'demandes' ? 'is-active' : '' %>">
+          Demandes
+        </a>
+      </li>
+
+  
+
+      <!-- Panier (visible uniquement pour les particuliers connectés) -->
+      <% if (user && user.role === 'PARTICULIER') { %>
+        <li class="navbar-item">
+          <a href="/panier" class="navbar-link <%= currentPage === 'panier' ? 'is-active' : '' %>">
+            Panier<% if (locals.panierCount > 0) { %> (<%= locals.panierCount %>)<% } %>
+          </a>
+        </li>
+      <% } %>
+
+      <!--
+        Section dynamique selon l'état de connexion.
+        "user" est injecté via res.locals dans app.js
+        et disponible dans tous les fichiers EJS.
+      -->
+      <% if (!user) { %>
+
+        <!-- Utilisateur NON connecté : un seul bouton Connexion -->
+        <li class="navbar-item">
+          <a
+            href="/auth/login"
+            class="navbar-link navbar-link-cta <%= currentPage === 'login' || currentPage === 'register' ? 'is-active' : '' %>"
+          >
+            Connexion
+          </a>
+        </li>
+
+      <% } else { %>
+
+        <!-- Utilisateur CONNECTÉ : menu déroulant -->
+        <li class="navbar-item navbar-dropdown">
+
+          <!-- Bouton déclencheur du menu -->
+          <button
+            class="navbar-link navbar-user-btn"
+            id="userMenuBtn"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <span class="user-avatar"><%= user.prenom.charAt(0).toUpperCase() %></span>
+            <span class="dropdown-arrow">▾</span>
+          </button>
+
+          <!-- Menu déroulant -->
+          <ul class="dropdown-menu" id="userMenu" role="menu">
+
+            <!-- En-tête : nom complet + rôle -->
+            <li class="dropdown-header" role="presentation">
+              <strong><%= user.prenom %> <%= user.nom %></strong>
+              <small>
+                <% if (user.role === 'AGRICULTEUR') { %>
+                  Agriculteur<% if (user.nom_exploitation) { %> — <%= user.nom_exploitation %><% } %>
+                <% } else { %>
+                  Particulier
+                <% } %>
+              </small>
+            </li>
+            <li class="dropdown-divider" role="separator"></li>
+
+            <!-- Mon compte (commun) -->
+            <li role="none">
+              <a href="/mon-compte" class="dropdown-item" role="menuitem">
+                Mon compte
+              </a>
+            </li>
+
+            <!-- Liens contextuels selon le rôle -->
+            <% if (user.role === 'AGRICULTEUR') { %>
+              <li role="none">
+                <a href="/commandes/agriculteur" class="dropdown-item" role="menuitem">
+                  Commandes reçues
+                </a>
+              </li>
+              <li role="none">
+                <a href="/offres/mes-offres" class="dropdown-item" role="menuitem">
+                  Mes offres
+                </a>
+              </li>
+              <li role="none">
+                <a href="/offres/creer" class="dropdown-item" role="menuitem">
+                  Déposer une offre
+                </a>
+              </li>
+            <% } else { %>
+              <li role="none">
+                <a href="/commandes" class="dropdown-item" role="menuitem">
+                  Mes commandes
+                </a>
+              </li>
+              <li role="none">
+                <a href="/demandes/mes-demandes" class="dropdown-item" role="menuitem">
+                  Mes demandes
+                </a>
+              </li>
+              <li role="none">
+                <a href="/demandes/creer" class="dropdown-item" role="menuitem">
+                  Déposer une demande
+                </a>
+              </li>
+            <% } %>
+
+            <li class="dropdown-divider" role="separator"></li>
+
+            <!-- Déconnexion via formulaire POST
+                 On utilise POST (et non GET) pour des raisons de sécurité :
+                 un lien GET peut être déclenché par une ressource externe
+                 (attaque CSRF), un POST exige une action utilisateur explicite. -->
+            <li role="none">
+              <form action="/auth/logout" method="post" style="margin: 0;">
+                <button type="submit" class="dropdown-item dropdown-item-danger" role="menuitem">
+                  Se déconnecter
+                </button>
+              </form>
+            </li>
+
+          </ul>
+        </li>
+
+      <% } %>
+
+    </ul>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+    // ── Menu hamburger (mobile) ──────────────────────────────
+    const toggle = document.getElementById("navbarToggle");
+    const menu   = document.getElementById("navbarMenu");
+
+    if (toggle && menu) {
+      toggle.addEventListener("click", () => {
+        const isOpen = menu.classList.toggle("active");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+
+    // ── Menu déroulant utilisateur ───────────────────────────
+    const userBtn  = document.getElementById("userMenuBtn");
+    const userMenu = document.getElementById("userMenu");
+
+    if (userBtn && userMenu) {
+      userBtn.addEventListener("click", (e) => {
+        // stopPropagation empêche le listener "click" global ci-dessous
+        // de fermer immédiatement le menu qu'on vient d'ouvrir
+        e.stopPropagation();
+        const isOpen = userMenu.classList.toggle("dropdown-open");
+        userBtn.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      // Fermer le menu au clic en dehors de celui-ci
+      document.addEventListener("click", () => {
+        userMenu.classList.remove("dropdown-open");
+        userBtn.setAttribute("aria-expanded", "false");
+      });
+    }
+
+  });
+</script>

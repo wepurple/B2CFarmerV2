@@ -1,0 +1,148 @@
+<!--
+  login.ejs
+  ---------
+  Page de connexion.
+
+  Variables reçues depuis le contrôleur (auth.controller.js > showLogin / handleLogin) :
+    - title      : Le titre de la page (affiché dans l'onglet du navigateur)
+    - activePage : Indique la page active pour la navbar ('login')
+    - error      : Message d'erreur à afficher (null si aucune erreur)
+    - email      : L'e-mail saisi, pour le ré-afficher en cas d'erreur
+
+  Rappel des balises EJS :
+    - Afficher une variable  :  valeur entre balises ejs =
+    - Afficher du HTML brut  :  valeur entre balises ejs -
+    - Exécuter du code JS    :  code entre balises ejs sans signe
+    - Commentaire EJS        :  texte entre balises ejs #
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include("../navbar") %>
+
+    <main class="page page-auth">
+      <div class="auth-card">
+
+        <!-- En-tête de la carte -->
+        <div class="auth-card-header">
+          <div> </div>
+          <h1 class="auth-title">Connexion</h1>
+          <p class="auth-subtitle">Bienvenue sur B2CFarmer</p>
+        </div>
+
+        <!-- Message d'erreur (affiché seulement si la variable "error" n'est pas null) -->
+        <% if (error) { %>
+          <div class="alert alert-error" role="alert">
+            <!-- role="alert" améliore l'accessibilité pour les lecteurs d'écran -->
+            <%= error %>
+          </div>
+        <% } %>
+
+        <!--
+          Formulaire de connexion
+          action="/auth/login" → envoie les données à la route POST /auth/login
+          method="post"        → utilise la méthode HTTP POST (données dans le corps, pas dans l'URL)
+        -->
+        <form action="/auth/login" method="post" class="auth-form" novalidate>
+          <!-- novalidate désactive la validation HTML5 native pour utiliser la nôtre -->
+
+          <!-- Champ E-mail -->
+          <div class="form-group">
+            <label for="email" class="form-label">Adresse e-mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              value="<%= email %>"
+              placeholder="votre@email.fr"
+              autocomplete="email"
+              required
+            />
+            <!--
+              value="<%= email %>" permet de ré-afficher l'e-mail saisi si le
+              formulaire est soumis avec une erreur (l'utilisateur n'a pas à le re-saisir)
+            -->
+          </div>
+
+          <!-- Champ Mot de passe -->
+          <div class="form-group">
+            <label for="password" class="form-label">
+              Mot de passe
+              <a href="#" class="form-label-link">Mot de passe oublié ?</a>
+              <!-- TODO: implémenter la réinitialisation de mot de passe -->
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              />
+              <!-- Bouton pour afficher/masquer le mot de passe -->
+              <button
+                type="button"
+                class="input-eye-btn"
+                aria-label="Afficher le mot de passe"
+                onclick="togglePassword('password', this)"
+              >
+                Afficher
+              </button>
+            </div>
+          </div>
+
+          <!-- Bouton de soumission -->
+          <button type="submit" class="btn btn-primary btn-full">
+            Se connecter
+          </button>
+        </form>
+
+        <!-- Lien vers la page d'inscription -->
+        <div class="auth-footer">
+          <p>
+            Pas encore de compte ?
+            <a href="/auth/register" class="link-accent">Créer un compte</a>
+          </p>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+
+    <script>
+      /**
+       * Fonction pour afficher/masquer le mot de passe dans un champ.
+       *
+       * @param {string} inputId - L'identifiant du champ mot de passe
+       * @param {HTMLElement} btn - Le bouton qui a été cliqué
+       */
+      function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+          // On passe en texte visible
+          input.type = 'text';
+          btn.textContent = 'Cacher';
+          btn.setAttribute('aria-label', 'Masquer le mot de passe');
+        } else {
+          // On remet en mode masqué
+          input.type = 'password';
+          btn.textContent = 'Afficher';
+          btn.setAttribute('aria-label', 'Afficher le mot de passe');
+        }
+      }
+    </script>
+  </body>
+</html>

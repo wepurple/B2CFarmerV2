@@ -1,0 +1,148 @@
+<!--
+  demandes/creer.ejs
+  -------------------
+  Formulaire de création d'une demande de produit (particuliers uniquement).
+
+  Variables reçues depuis demandes.controller.js > showCreerDemande :
+    - title      : "Déposer une demande"
+    - activePage : "demandes"
+    - error      : Message d'erreur (null si aucune erreur)
+    - formData   : Valeurs déjà saisies (pour ré-afficher en cas d'erreur)
+                   Structure : { titre, description, produit_recherche,
+                                 quantite_souhaitee, unite }
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page form-page">
+      <div class="form-card">
+
+        <!-- En-tête du formulaire -->
+        <div class="form-card-header">
+          <span class="form-card-icon">🔍</span>
+          <h1 class="form-card-title">Déposer une demande</h1>
+          <p class="form-card-subtitle">
+            Dites aux agriculteurs ce que vous cherchez. Ils pourront vous répondre directement.
+          </p>
+        </div>
+
+        <!-- Message d'erreur -->
+        <% if (error) { %>
+          <div class="alert alert-error" role="alert">
+            <span class="alert-icon">⚠️</span>
+            <%= error %>
+          </div>
+        <% } %>
+
+        <!-- Formulaire -->
+        <form action="/demandes/creer" method="post" class="auth-form" novalidate>
+
+          <!-- Informations de la demande -->
+          <fieldset class="form-fieldset">
+            <legend class="form-legend">Votre recherche</legend>
+
+            <!-- Titre de la demande -->
+            <div class="form-group">
+              <label for="titre" class="form-label">
+                Titre de votre demande <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="titre"
+                name="titre"
+                class="form-input"
+                value="<%= formData.titre || '' %>"
+                placeholder="Ex: Je cherche des tomates bio en vrac"
+                required
+              />
+            </div>
+
+            <!-- Produit recherché + quantité -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="produit_recherche" class="form-label">
+                  Produit recherché <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="produit_recherche"
+                  name="produit_recherche"
+                  class="form-input"
+                  value="<%= formData.produit_recherche || '' %>"
+                  placeholder="Ex: Tomates cerises bio"
+                  required
+                />
+              </div>
+
+              <div class="form-group form-group-small">
+                <label for="quantite_souhaitee" class="form-label">Quantité souhaitée</label>
+                <input
+                  type="number"
+                  id="quantite_souhaitee"
+                  name="quantite_souhaitee"
+                  class="form-input"
+                  value="<%= formData.quantite_souhaitee || '' %>"
+                  placeholder="Ex: 5"
+                  min="0"
+                  step="0.5"
+                />
+              </div>
+
+              <div class="form-group form-group-small">
+                <label for="unite" class="form-label">Unité</label>
+                <select id="unite" name="unite" class="form-input form-select">
+                  <option value="">— choisir —</option>
+                  <option value="kg"       <%= formData.unite === 'kg'       ? 'selected' : '' %>>kg</option>
+                  <option value="pièce"    <%= formData.unite === 'pièce'    ? 'selected' : '' %>>pièce</option>
+                  <option value="litre"    <%= formData.unite === 'litre'    ? 'selected' : '' %>>litre</option>
+                  <option value="botte"    <%= formData.unite === 'botte'    ? 'selected' : '' %>>botte</option>
+                  <option value="douzaine" <%= formData.unite === 'douzaine' ? 'selected' : '' %>>douzaine</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Description libre -->
+            <div class="form-group">
+              <label for="description" class="form-label">Description (optionnel)</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-input form-textarea"
+                rows="4"
+                placeholder="Précisez vos besoins : zone géographique souhaitée, qualité, mode de culture, fréquence d'achat..."
+              ><%= formData.description || '' %></textarea>
+            </div>
+
+          </fieldset>
+
+          <!-- Bouton de soumission -->
+          <button type="submit" class="btn btn-primary btn-full">
+            Publier ma demande
+          </button>
+
+        </form>
+
+        <!-- Lien retour -->
+        <div class="auth-footer">
+          <p>
+            <a href="/demandes" class="link-accent">← Retour aux demandes</a>
+          </p>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

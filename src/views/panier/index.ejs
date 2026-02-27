@@ -1,0 +1,122 @@
+<!--
+  panier/index.ejs
+  ----------------
+  Page du panier d'achat.
+  Affiche la liste des articles ajoutés au panier,
+  permet de modifier les quantités, supprimer un article,
+  et de passer au checkout.
+
+  Variables reçues depuis panier.controller.js > showPanier :
+    - title      : "Mon panier"
+    - activePage : "panier"
+    - panier     : Tableau d'articles du panier
+    - total      : Total général de la commande
+    - success    : Message de succès (ex: "ajoute") ou null
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page panier-page">
+      <div class="panier-container">
+
+        <h1>Mon panier</h1>
+
+        <!-- Message de succès après ajout -->
+        <% if (success === 'ajoute') { %>
+          <div class="alert alert-success" role="alert">
+            Produit ajouté au panier avec succès !
+          </div>
+        <% } %>
+
+        <% if (panier.length === 0) { %>
+
+          <!-- Panier vide -->
+          <div class="empty-state">
+            <h2>Votre panier est vide</h2>
+            <p>Parcourez les offres pour ajouter des produits à votre panier.</p>
+            <a href="/offres" class="btn btn-primary">Explorer les offres</a>
+          </div>
+
+        <% } else { %>
+
+          <!-- Liste des articles du panier -->
+          <div class="panier-articles">
+            <% panier.forEach(item => { %>
+              <div class="panier-article">
+                <div class="panier-article-info">
+                  <h3 class="panier-article-titre"><%= item.libelle %></h3>
+                  <p class="panier-article-meta">
+                    <span class="offre-exploitation"><%= item.nom_exploitation %></span>
+                    <span class="panier-article-offre"><%= item.offre_titre %></span>
+                  </p>
+                  <p class="panier-article-prix">
+                    <%= Number(item.prix).toFixed(2) %> € / <%= item.unite %>
+                  </p>
+                </div>
+
+                <div class="panier-article-actions">
+                  <!-- Formulaire de modification de la quantité -->
+                  <form action="/panier/quantite" method="post" class="panier-qte-form">
+                    <input type="hidden" name="id_offre" value="<%= item.id_offre %>">
+                    <input type="hidden" name="id_produit" value="<%= item.id_produit %>">
+                    <label for="qte-<%= item.id_offre %>-<%= item.id_produit %>" class="sr-only">Quantité</label>
+                    <input
+                      type="number"
+                      id="qte-<%= item.id_offre %>-<%= item.id_produit %>"
+                      name="quantite"
+                      value="<%= item.quantite %>"
+                      min="1"
+                      class="form-input panier-qte-input"
+                    >
+                    <button type="submit" class="btn btn-sm btn-secondary">Modifier</button>
+                  </form>
+
+                  <!-- Sous-total de la ligne -->
+                  <p class="panier-article-subtotal">
+                    <strong><%= (Number(item.prix) * Number(item.quantite)).toFixed(2) %> €</strong>
+                  </p>
+
+                  <!-- Bouton de suppression -->
+                  <form action="/panier/supprimer" method="post">
+                    <input type="hidden" name="id_offre" value="<%= item.id_offre %>">
+                    <input type="hidden" name="id_produit" value="<%= item.id_produit %>">
+                    <button type="submit" class="btn btn-sm btn-danger" title="Retirer du panier">
+                      ✕ Retirer
+                    </button>
+                  </form>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+
+          <!-- Total et bouton de validation -->
+          <div class="panier-footer">
+            <div class="panier-total">
+              <span>Total :</span>
+              <strong><%= total.toFixed(2) %> €</strong>
+            </div>
+            <div class="panier-footer-actions">
+              <a href="/offres" class="btn btn-secondary">Continuer mes achats</a>
+              <a href="/panier/valider" class="btn btn-primary btn-lg">Valider la commande</a>
+            </div>
+          </div>
+
+        <% } %>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

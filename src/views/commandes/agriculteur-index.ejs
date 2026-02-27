@@ -1,0 +1,102 @@
+<!--
+  commandes/agriculteur-index.ejs
+  ---------------------------------
+  Espace agriculteur : liste des commandes reçues.
+  Accessible uniquement aux agriculteurs connectés.
+
+  Variables reçues depuis commandes.controller.js > listCommandesAgriculteur :
+    - title      : "Commandes reçues"
+    - activePage : "commandes-agri"
+    - commandes  : Tableau de commandes avec client_prenom, client_nom, nb_articles
+    - success    : 'annulee' ou null
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Commandes reçues</h1>
+          <p>Gérez les commandes passées par les particuliers sur vos offres.</p>
+        </div>
+      </div>
+
+      <% if (success === 'annulee') { %>
+        <div class="alert alert-success" role="alert">
+          La commande a été annulée.
+        </div>
+      <% } %>
+
+      <% if (commandes.length === 0) { %>
+
+        <div class="empty-state">
+          <h2>Aucune commande reçue</h2>
+          <p>Vous n'avez pas encore reçu de commande sur vos offres.</p>
+          <a href="/offres/mes-offres" class="btn btn-primary">Voir mes offres</a>
+        </div>
+
+      <% } else { %>
+
+        <div class="commandes-list">
+          <% commandes.forEach(commande => { %>
+            <article class="commande-card">
+              <div class="commande-card-header">
+                <div>
+                  <h3 class="commande-card-titre">
+                    <a href="/commandes/agriculteur/<%= commande.id_commande %>">
+                      Commande #<%= commande.id_commande %>
+                    </a>
+                  </h3>
+                  <p class="commande-card-date">
+                    Client : <strong><%= commande.client_prenom %> <%= commande.client_nom %></strong>
+                    &nbsp;·&nbsp;
+                    <%= new Date(commande.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                  </p>
+                </div>
+                <div>
+                  <% if (commande.statut === 'EN_ATTENTE') { %>
+                    <span class="offre-badge badge-en-attente">En attente</span>
+                  <% } else if (commande.statut === 'CONFIRMEE') { %>
+                    <span class="offre-badge badge-confirmee">Confirmée</span>
+                  <% } else if (commande.statut === 'LIVREE') { %>
+                    <span class="offre-badge badge-livree">Livrée</span>
+                  <% } else if (commande.statut === 'ANNULEE') { %>
+                    <span class="offre-badge badge-annulee">Annulée</span>
+                  <% } %>
+                </div>
+              </div>
+
+              <div class="commande-card-footer">
+                <span class="commande-card-articles">
+                  <%= commande.nb_articles %> article<%= commande.nb_articles > 1 ? 's' : '' %>
+                </span>
+                <span class="commande-card-total">
+                  <strong><%= Number(commande.total).toFixed(2) %> €</strong>
+                </span>
+                <a href="/commandes/agriculteur/<%= commande.id_commande %>" class="btn btn-sm btn-primary">
+                  Voir le détail
+                </a>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

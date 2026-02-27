@@ -1,0 +1,119 @@
+<!--
+  commandes/show.ejs
+  ------------------
+  Page de détail d'une commande.
+  Affiche les informations générales de la commande,
+  le tableau des produits commandés et le total.
+
+  Variables reçues depuis commandes.controller.js > showCommande :
+    - title      : "Commande #X"
+    - activePage : "commandes"
+    - commande   : Objet commande avec lignes[] :
+                   { id_commande, statut, total, created_at, updated_at,
+                     lignes: [{ libelle, unite, quantite, prix_unitaire, offre_titre, nom_exploitation }] }
+    - success    : true si commande vient d'être créée (après checkout)
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+      <div class="offre-detail">
+
+        <!-- Lien de retour -->
+        <a href="/commandes" class="back-link">← Retour à mes commandes</a>
+
+        <!-- Alerte de succès après création -->
+        <% if (success) { %>
+          <div class="alert alert-success" role="alert" style="margin-top: 0.8rem;">
+            Votre commande a été enregistrée avec succès !
+            L'agriculteur sera notifié et traitera votre commande.
+          </div>
+        <% } %>
+
+        <!-- En-tête de la commande -->
+        <h1>Commande #<%= commande.id_commande %></h1>
+
+        <!-- Informations clés en grille -->
+        <div class="offre-info">
+          <p>
+            <span class="info-label">Date</span>
+            <strong>
+              <%= new Date(commande.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+            </strong>
+          </p>
+          <p>
+            <span class="info-label">Statut</span>
+            <% if (commande.statut === 'EN_ATTENTE') { %>
+              <span class="offre-badge badge-en-attente">En attente</span>
+            <% } else if (commande.statut === 'CONFIRMEE') { %>
+              <span class="offre-badge badge-confirmee">Confirmée</span>
+            <% } else if (commande.statut === 'LIVREE') { %>
+              <span class="offre-badge badge-livree">Livrée</span>
+            <% } else if (commande.statut === 'ANNULEE') { %>
+              <span class="offre-badge badge-annulee">Annulée</span>
+            <% } %>
+          </p>
+          <p>
+            <span class="info-label">Total</span>
+            <strong><%= Number(commande.total).toFixed(2) %> €</strong>
+          </p>
+        </div>
+
+        <!-- Tableau des produits commandés -->
+        <div class="offre-section">
+          <h2>Produits commandés</h2>
+          <% if (commande.lignes && commande.lignes.length > 0) { %>
+            <table class="produits-table">
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Exploitation</th>
+                  <th>Prix unitaire</th>
+                  <th>Quantité</th>
+                  <th>Sous-total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% commande.lignes.forEach(ligne => { %>
+                  <tr>
+                    <td><strong><%= ligne.libelle %></strong></td>
+                    <td><%= ligne.nom_exploitation %></td>
+                    <td class="prix-cell"><%= Number(ligne.prix_unitaire).toFixed(2) %> € / <%= ligne.unite %></td>
+                    <td><%= Number(ligne.quantite) %></td>
+                    <td class="prix-cell">
+                      <strong><%= (Number(ligne.prix_unitaire) * Number(ligne.quantite)).toFixed(2) %> €</strong>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" class="checkout-total-label"><strong>Total</strong></td>
+                  <td class="prix-cell checkout-total-value">
+                    <strong><%= Number(commande.total).toFixed(2) %> €</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          <% } else { %>
+            <p class="no-produits">Aucun produit dans cette commande.</p>
+          <% } %>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

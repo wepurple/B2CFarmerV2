@@ -1,0 +1,140 @@
+<!--
+  demandes/index.ejs
+  -------------------
+  Page listant toutes les demandes ouvertes (liste publique).
+
+  Variables reçues depuis demandes.controller.js > listDemandes :
+    - title      : "Demandes de produits"
+    - activePage : "demandes"
+    - demandes   : Tableau d'objets demande :
+                   { id_demande, titre, description, produit_recherche,
+                     quantite_souhaitee, unite, statut, created_at,
+                     prenom_particulier, nom_particulier, nb_reponses }
+    - success    : true si une demande vient d'être créée (?success=1)
+
+  La variable "user" est disponible globalement via res.locals (app.js).
+
+  Principe de cette page :
+    Un particulier peut poster ici "je cherche X kg de tomates bio".
+    Les agriculteurs peuvent consulter ces demandes et répondre.
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+
+      <!-- En-tête avec titre et bouton de création -->
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Demandes de produits</h1>
+          <p>Les particuliers publient ici leurs recherches de produits spécifiques.</p>
+        </div>
+
+        <!-- Bouton contextuel -->
+        <% if (user && user.role === 'PARTICULIER') { %>
+          <!-- Particulier connecté : peut déposer une demande -->
+          <a href="/demandes/creer" class="btn btn-primary">+ Déposer une demande</a>
+        <% } %>
+      </div>
+
+      <!-- Confirmation après création d'une demande -->
+      <% if (success) { %>
+        <div class="alert alert-success" role="alert">
+          Votre demande a été publiée ! Les agriculteurs peuvent maintenant y répondre.
+        </div>
+      <% } %>
+
+      <!-- Explication du fonctionnement -->
+      <div class="section-explainer">
+        <p>
+          <strong>Comment ça marche ?</strong>
+          Les particuliers déposent des demandes pour des produits qu'ils recherchent.
+          Les agriculteurs peuvent voir ces demandes et
+          <% if (user && user.role === 'AGRICULTEUR') { %>
+            <strong>y répondre directement</strong> depuis la page de chaque demande.
+          <% } else { %>
+            y répondre directement.
+          <% } %>
+        </p>
+      </div>
+
+      <!-- Liste des demandes OU message vide -->
+      <% if (demandes && demandes.length > 0) { %>
+        <div class="demandes-list">
+          <% demandes.forEach(d => { %>
+            <div class="demande-card">
+
+              <!-- En-tête : produit recherché et statut -->
+              <div class="demande-card-header">
+                <div class="demande-produit-badge">
+                  <%= d.produit_recherche %>
+                  <% if (d.quantite_souhaitee) { %>
+                    — <%= d.quantite_souhaitee %>
+                    <% if (d.unite) { %><%= d.unite %><% } %>
+                  <% } %>
+                </div>
+                <span class="demande-nb-reponses">
+                  <%= d.nb_reponses %> réponse(s)
+                </span>
+              </div>
+
+              <!-- Titre de la demande -->
+              <h2 class="demande-titre">
+                <a href="/demandes/<%= d.id_demande %>"><%= d.titre %></a>
+              </h2>
+
+              <!-- Description courte -->
+              <% if (d.description) { %>
+                <p class="demande-desc">
+                  <%= d.description.length > 150
+                      ? d.description.substring(0, 150) + '…'
+                      : d.description %>
+                </p>
+              <% } %>
+
+              <!-- Méta-infos : auteur et date -->
+              <div class="demande-card-footer">
+                <span class="demande-auteur">
+                  Par <%= d.prenom_particulier || '' %><% if (d.nom_particulier) { %> <%= d.nom_particulier.charAt(0) %>.<% } %>
+                </span>
+                <span class="demande-date">
+                  <%= new Date(d.created_at).toLocaleDateString('fr-FR') %>
+                </span>
+                <a href="/demandes/<%= d.id_demande %>" class="btn btn-secondary btn-sm">
+                  Voir la demande →
+                </a>
+              </div>
+
+            </div>
+          <% }); %>
+        </div>
+
+      <% } else { %>
+        <!-- Aucune demande ouverte -->
+        <div class="empty-state">
+          <h2>Aucune demande pour le moment</h2>
+          <p>Soyez le premier à déposer une demande de produit !</p>
+          <% if (user && user.role === 'PARTICULIER') { %>
+            <a href="/demandes/creer" class="btn btn-primary">Déposer une demande</a>
+          <% } else if (!user) { %>
+            <a href="/auth/login" class="btn btn-primary">Connectez-vous pour déposer une demande</a>
+          <% } %>
+        </div>
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

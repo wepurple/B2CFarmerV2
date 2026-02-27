@@ -1,0 +1,151 @@
+<!--
+  demandes/mes-demandes.ejs
+  --------------------------
+  Page personnelle du particulier : liste de ses demandes publiées.
+  Accessible uniquement aux particuliers connectés.
+
+  Variables reçues depuis demandes.controller.js > listMesDemandes :
+    - title      : "Mes demandes"
+    - activePage : "demandes"
+    - demandes   : Tableau d'objets demande :
+                   { id_demande, titre, produit_recherche, quantite_souhaitee,
+                     unite, statut, created_at, nb_reponses }
+    - success    : message contextuel ou false :
+                   '1'      → demande créée avec succès
+                   'edit'   → demande modifiée avec succès
+                   'delete' → demande supprimée avec succès
+                   true     → demande clôturée (?success=1)
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Mes demandes</h1>
+          <p>Suivez les réponses des agriculteurs à vos recherches de produits.</p>
+        </div>
+        <a href="/demandes/creer" class="btn btn-primary">+ Nouvelle demande</a>
+      </div>
+
+      <!-- Messages de confirmation contextuels -->
+      <% if (success === '1') { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre demande a été publiée ! Les agriculteurs peuvent maintenant y répondre.
+        </div>
+      <% } else if (success === 'edit') { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre demande a été modifiée avec succès.
+        </div>
+      <% } else if (success === 'delete') { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre demande a été supprimée définitivement.
+        </div>
+      <% } else if (success) { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre demande a été clôturée. Merci d'utiliser B2CFarmer !
+        </div>
+      <% } %>
+
+      <!-- Liste des demandes -->
+      <% if (demandes && demandes.length > 0) { %>
+        <div class="mes-offres-list">
+          <% demandes.forEach(d => { %>
+            <div class="mes-offres-card">
+
+              <!-- En-tête : titre + statut -->
+              <div class="mes-offres-card-header">
+                <h2 class="mes-offres-titre">
+                  <a href="/demandes/<%= d.id_demande %>"><%= d.titre %></a>
+                </h2>
+
+                <!-- Badge statut -->
+                <% if (d.statut === 'OUVERTE') { %>
+                  <span class="offre-badge badge-active">Ouverte</span>
+                <% } else { %>
+                  <span class="offre-badge badge-terminee">Clôturée</span>
+                <% } %>
+              </div>
+
+              <!-- Produit recherché -->
+              <div class="demande-produit-badge">
+                <%= d.produit_recherche %>
+                <% if (d.quantite_souhaitee) { %>
+                  — <%= d.quantite_souhaitee %>
+                  <% if (d.unite) { %><%= d.unite %><% } %>
+                <% } %>
+              </div>
+
+              <!-- Méta-infos -->
+              <div class="mes-offres-meta">
+                <span class="meta-item">
+                  <% if (parseInt(d.nb_reponses) > 0) { %>
+                    <strong><%= d.nb_reponses %></strong> réponse(s) reçue(s)
+                  <% } else { %>
+                    Aucune réponse pour l'instant
+                  <% } %>
+                </span>
+                <span class="meta-item">
+                  Publiée le <%= new Date(d.created_at).toLocaleDateString('fr-FR') %>
+                </span>
+              </div>
+
+              <!-- Actions -->
+              <div class="mes-offres-actions">
+                <a href="/demandes/<%= d.id_demande %>" class="btn btn-secondary btn-sm">
+                  Voir les réponses →
+                </a>
+
+                <!-- Modifier et supprimer uniquement si la demande est encore ouverte -->
+                <% if (d.statut === 'OUVERTE') { %>
+                  <a href="/demandes/<%= d.id_demande %>/edit" class="btn btn-outline btn-sm">
+                    Modifier
+                  </a>
+                  <form
+                    action="/demandes/<%= d.id_demande %>/delete"
+                    method="post"
+                    style="display:inline;"
+                    onsubmit="return confirm('Supprimer cette demande ? Cette action est irréversible.');"
+                  >
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      Supprimer
+                    </button>
+                  </form>
+                <% } %>
+              </div>
+
+            </div>
+          <% }); %>
+        </div>
+
+      <% } else { %>
+        <!-- Aucune demande -->
+        <div class="empty-state">
+          <h2>Vous n'avez pas encore posté de demande</h2>
+          <p>Dites aux agriculteurs ce que vous cherchez et recevez leurs réponses directement.</p>
+          <a href="/demandes/creer" class="btn btn-primary">Déposer ma première demande</a>
+        </div>
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

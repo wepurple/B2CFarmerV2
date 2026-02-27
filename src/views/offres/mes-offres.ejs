@@ -1,0 +1,133 @@
+<!--
+  offres/mes-offres.ejs
+  ----------------------
+  Page personnelle de l'agriculteur : liste de ses offres publiées.
+  Accessible uniquement aux agriculteurs connectés.
+
+  Variables reçues depuis offres.controller.js > listMesOffres :
+    - title      : "Mes offres"
+    - activePage : "offres"
+    - offres     : Tableau d'objets offre :
+                   { id_offre, titre, description, statut, created_at,
+                     nb_produits, nb_contacts }
+    - success    : valeur du query param ?success= ('1', 'edit', 'delete')
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+
+      <!-- En-tête avec bouton de création -->
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Mes offres</h1>
+          <p>Gérez les offres publiées sur votre exploitation.</p>
+        </div>
+        <a href="/offres/creer" class="btn btn-primary">+ Déposer une offre</a>
+      </div>
+
+      <!-- Messages de confirmation contextuels -->
+      <% if (success === '1' || success === true) { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre offre a été publiée avec succès ! Elle est maintenant visible par tous les visiteurs.
+        </div>
+      <% } else if (success === 'edit') { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre offre a été modifiée avec succès !
+        </div>
+      <% } else if (success === 'delete') { %>
+        <div class="alert alert-success" role="alert">
+
+          Votre offre a été supprimée.
+        </div>
+      <% } %>
+
+      <!-- Liste des offres de l'agriculteur -->
+      <% if (offres && offres.length > 0) { %>
+        <div class="mes-offres-list">
+          <% offres.forEach(offre => { %>
+            <div class="mes-offres-card">
+
+              <!-- En-tête de la carte : titre + badge de statut -->
+              <div class="mes-offres-card-header">
+                <h2 class="mes-offres-titre"><%= offre.titre %></h2>
+
+                <!-- Badge de statut coloré selon l'état de l'offre -->
+                <% if (offre.statut === 'ACTIVE') { %>
+                  <span class="offre-badge badge-active">Active</span>
+                <% } else if (offre.statut === 'PAUSE') { %>
+                  <span class="offre-badge badge-pause">En pause</span>
+                <% } else { %>
+                  <span class="offre-badge badge-terminee">Terminée</span>
+                <% } %>
+              </div>
+
+              <!-- Description courte -->
+              <% if (offre.description) { %>
+                <p class="mes-offres-desc">
+                  <%= offre.description.length > 100
+                      ? offre.description.substring(0, 100) + '…'
+                      : offre.description %>
+                </p>
+              <% } %>
+
+              <!-- Méta-infos : produits, contacts, date -->
+              <div class="mes-offres-meta">
+                <span class="meta-item">
+                  <strong><%= offre.nb_produits %></strong> produit(s)
+                </span>
+                <span class="meta-item">
+                  <strong><%= offre.nb_contacts %></strong> message(s) reçu(s)
+                </span>
+                <span class="meta-item">
+                  Créée le <%= new Date(offre.created_at).toLocaleDateString('fr-FR') %>
+                </span>
+              </div>
+
+              <!-- Actions : Voir / Modifier / Supprimer -->
+              <div class="mes-offres-actions">
+                <a href="/offres/<%= offre.id_offre %>" class="btn btn-secondary btn-sm">
+                  Voir la page publique
+                </a>
+                <a href="/offres/<%= offre.id_offre %>/edit" class="btn btn-secondary btn-sm">
+                  Modifier
+                </a>
+                <form action="/offres/<%= offre.id_offre %>/delete" method="post" style="display:inline;"
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ?');">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    Supprimer
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          <% }); %>
+        </div>
+
+      <% } else { %>
+        <!-- Aucune offre publiée -->
+        <div class="empty-state">
+          <h2>Vous n'avez pas encore publié d'offre</h2>
+          <p>Publiez votre première offre pour que les particuliers puissent vous contacter.</p>
+          <a href="/offres/creer" class="btn btn-primary">Déposer ma première offre</a>
+        </div>
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

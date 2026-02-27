@@ -1,0 +1,204 @@
+<!--
+  demandes/show.ejs
+  ------------------
+  Page de détail d'une demande avec ses réponses.
+  Permet aux agriculteurs de répondre à la demande.
+
+  Variables reçues depuis demandes.controller.js > showDemande :
+    - title   : Le titre de la demande
+    - activePage : "demandes"
+    - demande : Objet complet :
+                { id_demande, id_user_particulier, titre, description,
+                  produit_recherche, quantite_souhaitee, unite, statut,
+                  created_at, prenom_particulier, nom_particulier,
+                  reponses: [{id_reponse, message, created_at,
+                               prenom_agri, nom_agri, nom_exploitation, ville}] }
+    - error   : Message d'erreur (ou null)
+    - success : true si une réponse vient d'être envoyée
+
+  La variable "user" est disponible globalement via res.locals (app.js).
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+      <div class="offre-detail">
+
+        <!-- Lien de retour -->
+        <a href="/demandes" class="back-link">← Retour aux demandes</a>
+
+        <!-- En-tête de la demande -->
+        <div class="demande-detail-header">
+          <div class="demande-produit-badge demande-produit-badge-lg">
+            <%= demande.produit_recherche %>
+            <% if (demande.quantite_souhaitee) { %>
+              — <%= demande.quantite_souhaitee %>
+              <% if (demande.unite) { %><%= demande.unite %><% } %>
+            <% } %>
+          </div>
+
+          <!-- Badge de statut -->
+          <% if (demande.statut === 'OUVERTE') { %>
+            <span class="offre-badge badge-active">Ouverte</span>
+          <% } else { %>
+            <span class="offre-badge badge-terminee">Clôturée</span>
+          <% } %>
+        </div>
+
+        <!-- Titre -->
+        <h1><%= demande.titre %></h1>
+
+        <!-- Auteur et date -->
+        <div class="offre-info">
+          <p>
+            <span class="info-label">Demandé par</span>
+            <%= demande.prenom_particulier %> <%= demande.nom_particulier.charAt(0) %>.
+          </p>
+          <p>
+            <span class="info-label">Publié le</span>
+            <%= new Date(demande.created_at).toLocaleDateString('fr-FR') %>
+          </p>
+        </div>
+
+        <!-- Description -->
+        <% if (demande.description) { %>
+          <div class="offre-section">
+            <h2>Détails de la demande</h2>
+            <p class="offre-description-text"><%= demande.description %></p>
+          </div>
+        <% } %>
+
+
+        <!-- Section réponses des agriculteurs -->
+        <div class="offre-section">
+          <h2>
+            Réponses des agriculteurs
+            <span class="reponses-count">(<%= demande.reponses.length %>)</span>
+          </h2>
+
+          <!-- Alertes succès/erreur -->
+          <% if (success) { %>
+            <div class="alert alert-success" role="alert">
+              Votre réponse a bien été envoyée !
+            </div>
+          <% } %>
+          <% if (error) { %>
+            <div class="alert alert-error" role="alert">
+              <%= error %>
+            </div>
+          <% } %>
+
+          <!-- Liste des réponses -->
+          <% if (demande.reponses.length > 0) { %>
+            <div class="reponses-list">
+              <% demande.reponses.forEach(r => { %>
+                <div class="reponse-card">
+                  <div class="reponse-card-header">
+                    <strong><%= r.nom_exploitation %></strong>
+                    <span class="reponse-agri">
+                      (par <%= r.prenom_agri %> <%= r.nom_agri.charAt(0) %>.)
+                      <% if (r.ville) { %> — <%= r.ville %><% } %>
+                    </span>
+                  </div>
+                  <p class="reponse-message"><%= r.message %></p>
+                  <span class="reponse-date">
+                    <%= new Date(r.created_at).toLocaleDateString('fr-FR') %>
+                  </span>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <p class="text-muted">Aucune réponse pour le moment.</p>
+          <% } %>
+
+          <!-- Formulaire de réponse (agriculteurs uniquement) -->
+          <% if (user && user.role === 'AGRICULTEUR' && demande.statut === 'OUVERTE') { %>
+            <% if (!success) { %>
+              <div class="reponse-form-section">
+                <h3>Répondre à cette demande</h3>
+                <form
+                  action="/demandes/<%= demande.id_demande %>/repondre"
+                  method="post"
+                  class="contact-form"
+                >
+                  <div class="form-group">
+                    <label for="message" class="form-label">
+                      Votre réponse <span class="required">*</span>
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      class="form-input form-textarea"
+                      rows="4"
+                      placeholder="Bonjour, j'ai ce produit disponible sur mon exploitation. Je peux vous proposer..."
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    Envoyer ma réponse
+                  </button>
+                </form>
+              </div>
+            <% } %>
+
+          <% } else if (!user) { %>
+            <!-- Visiteur non connecté -->
+            <div class="contact-prompt" style="margin-top:1rem;">
+              <p>Vous êtes agriculteur ? Connectez-vous pour répondre à cette demande.</p>
+              <div class="contact-prompt-actions">
+                <a href="/auth/login"    class="btn btn-primary">Se connecter</a>
+                <a href="/auth/register" class="btn btn-secondary">Créer un compte</a>
+              </div>
+            </div>
+          <% } %>
+
+        </div>
+
+        <!-- Actions propriétaire (modifier, supprimer, clôturer) -->
+        <% if (user && user.id_user === demande.id_user_particulier && demande.statut === 'OUVERTE') { %>
+          <div class="offre-section">
+            <h3>Gérer cette demande</h3>
+            <p class="text-muted">
+              Vous êtes l'auteur de cette demande. Vous pouvez la modifier, la clôturer
+              si vous avez trouvé ce que vous cherchiez, ou la supprimer définitivement.
+            </p>
+            <div class="form-actions-row">
+              <a href="/demandes/<%= demande.id_demande %>/edit" class="btn btn-primary">
+                Modifier la demande
+              </a>
+              <form action="/demandes/<%= demande.id_demande %>/cloturer" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-secondary">
+                  Clôturer (trouvé !)
+                </button>
+              </form>
+              <form
+                action="/demandes/<%= demande.id_demande %>/delete"
+                method="post"
+                style="display:inline;"
+                onsubmit="return confirm('Supprimer cette demande définitivement ?');"
+              >
+                <button type="submit" class="btn btn-danger">
+                  Supprimer
+                </button>
+              </form>
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

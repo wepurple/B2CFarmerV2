@@ -1,0 +1,39 @@
+<!--
+  404.ejs
+  -------
+  Page d'erreur générique (404, 403, etc.).
+  Affichée quand une page n'existe pas ou quand l'accès est interdit.
+
+  Variables reçues :
+    - title      : Titre affiché dans l'onglet ("Page non trouvée", "Accès interdit"...)
+    - message    : Message explicatif (optionnel, un défaut est affiché si absent)
+    - activePage : Page active dans la navbar (optionnel, "" par défaut)
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <%- include("navbar") %>
+
+    <main class="page not-found-page">
+      <div class="error-page">
+        <h2><%= title %></h2>
+        <p>
+          <%= typeof message !== 'undefined' && message
+              ? message
+              : 'Désolé, la page que vous recherchez n\'existe pas.' %>
+        </p>
+        <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

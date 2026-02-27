@@ -1,0 +1,114 @@
+<!--
+  offres/index.ejs
+  -----------------
+  Page listant toutes les offres actives.
+
+  Variables reçues depuis offres.controller.js > listOffres :
+    - title      : "Offres disponibles"
+    - activePage : "offres"
+    - offres     : Tableau d'objets offre, chacun avec :
+                   { id_offre, titre, description, created_at,
+                     nom_exploitation, ville,
+                     produits: [{libelle, prix, quantite}] }
+
+  La variable "user" est disponible globalement via res.locals (app.js).
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page offers-page">
+
+      <!-- En-tête avec titre et bouton d'action contextuel -->
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Offres disponibles</h1>
+          <p>Produits frais proposés directement par les exploitations locales.</p>
+        </div>
+
+        <!-- Bouton contextuel selon le rôle de l'utilisateur -->
+        <% if (user && user.role === 'AGRICULTEUR') { %>
+          <!-- Agriculteur connecté : peut déposer une offre -->
+          <a href="/offres/creer" class="btn btn-primary">+ Déposer une offre</a>
+        <% } %>
+      </div>
+
+      <!-- Affichage des offres OU message vide -->
+      <% if (offres && offres.length > 0) { %>
+        <div class="offres-list">
+          <% offres.forEach(offre => { %>
+            <div class="offre-card">
+
+              <!-- Méta-infos : exploitation et ville -->
+              <div class="offre-card-meta">
+                <span class="offre-exploitation"><%= offre.nom_exploitation %></span>
+                <span class="offre-ville"><%= offre.ville %></span>
+              </div>
+
+              <!-- Titre de l'offre -->
+              <h2 class="offre-card-titre"><%= offre.titre %></h2>
+
+              <!-- Description tronquée si trop longue -->
+              <% if (offre.description) { %>
+                <p class="offre-card-desc">
+                  <%= offre.description.length > 120
+                      ? offre.description.substring(0, 120) + '…'
+                      : offre.description %>
+                </p>
+              <% } %>
+
+              <!-- Tags des produits (max 4, puis "et X autres") -->
+              <% if (offre.produits && offre.produits.length > 0) { %>
+                <div class="offre-produit-tags">
+                  <% offre.produits.slice(0, 4).forEach(p => { %>
+                    <span class="produit-tag">
+                      <%= p.libelle %>
+                      <strong><%= parseFloat(p.prix).toFixed(2) %>€</strong>
+                    </span>
+                  <% }); %>
+                  <% if (offre.produits.length > 4) { %>
+                    <span class="produit-tag produit-tag-more">+<%= offre.produits.length - 4 %> autres</span>
+                  <% } %>
+                </div>
+              <% } %>
+
+              <!-- Pied de la carte : date + bouton -->
+              <div class="offre-card-footer">
+                <span class="offre-card-date">
+                  Publié le <%= new Date(offre.created_at).toLocaleDateString('fr-FR') %>
+                </span>
+                <a href="/offres/<%= offre.id_offre %>" class="btn btn-primary btn-sm">
+                  Voir l'offre →
+                </a>
+              </div>
+
+            </div>
+          <% }); %>
+        </div>
+
+      <% } else { %>
+        <!-- Message affiché quand aucune offre n'est disponible -->
+        <div class="empty-state">
+          <h2>Aucune offre disponible pour le moment</h2>
+          <p>Revenez bientôt, de nouvelles offres sont publiées régulièrement.</p>
+          <% if (user && user.role === 'AGRICULTEUR') { %>
+            <a href="/offres/creer" class="btn btn-primary">Publier la première offre</a>
+          <% } %>
+        </div>
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

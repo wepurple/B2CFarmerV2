@@ -1,0 +1,94 @@
+<!--
+  commandes/index.ejs
+  -------------------
+  Page d'historique des commandes du particulier.
+  Affiche la liste de toutes les commandes passées
+  avec leur date, statut, nombre d'articles et total.
+
+  Variables reçues depuis commandes.controller.js > listMesCommandes :
+    - title      : "Mes commandes"
+    - activePage : "commandes"
+    - commandes  : Tableau de commandes avec nb_articles
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+
+      <!-- En-tête de la page -->
+      <div class="page-header">
+        <h1>Mes commandes</h1>
+      </div>
+
+      <% if (commandes.length === 0) { %>
+
+        <!-- Aucune commande -->
+        <div class="empty-state">
+          <h2>Aucune commande</h2>
+          <p>Vous n'avez pas encore passé de commande. Parcourez les offres pour commencer !</p>
+          <a href="/offres" class="btn btn-primary">Explorer les offres</a>
+        </div>
+
+      <% } else { %>
+
+        <!-- Liste des commandes -->
+        <div class="commandes-list">
+          <% commandes.forEach(commande => { %>
+            <article class="commande-card">
+              <div class="commande-card-header">
+                <div>
+                  <h3 class="commande-card-titre">
+                    <a href="/commandes/<%= commande.id_commande %>">
+                      Commande #<%= commande.id_commande %>
+                    </a>
+                  </h3>
+                  <p class="commande-card-date">
+                    <%= new Date(commande.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                  </p>
+                </div>
+                <div>
+                  <% if (commande.statut === 'EN_ATTENTE') { %>
+                    <span class="offre-badge badge-en-attente">En attente</span>
+                  <% } else if (commande.statut === 'CONFIRMEE') { %>
+                    <span class="offre-badge badge-confirmee">Confirmée</span>
+                  <% } else if (commande.statut === 'LIVREE') { %>
+                    <span class="offre-badge badge-livree">Livrée</span>
+                  <% } else if (commande.statut === 'ANNULEE') { %>
+                    <span class="offre-badge badge-annulee">Annulée</span>
+                  <% } %>
+                </div>
+              </div>
+
+              <div class="commande-card-footer">
+                <span class="commande-card-articles">
+                  <%= commande.nb_articles %> article<%= commande.nb_articles > 1 ? 's' : '' %>
+                </span>
+                <span class="commande-card-total">
+                  <strong><%= Number(commande.total).toFixed(2) %> €</strong>
+                </span>
+                <a href="/commandes/<%= commande.id_commande %>" class="btn btn-sm btn-primary">
+                  Voir le détail
+                </a>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+
+      <% } %>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

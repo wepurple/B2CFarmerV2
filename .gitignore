@@ -1,0 +1,51 @@
+# Environment variables (secrets & credentials)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.production.local
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# Build & Temp outputs
+dist/
+build/
+.next/
+tmp/
+temp/
+*.tmp
+
+# Logs
+logs/
+*.log
+
+# Database
+*.sql.backup
+dumped-sql/
+
+# Vercel
+.vercel

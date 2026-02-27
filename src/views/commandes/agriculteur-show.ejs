@@ -1,0 +1,159 @@
+<!--
+  commandes/agriculteur-show.ejs
+  --------------------------------
+  Espace agriculteur : détail d'une commande reçue.
+  Affiche les lignes de CETTE exploitation uniquement,
+  les infos du client et les boutons d'action (Confirmer / Annuler).
+
+  Variables reçues depuis commandes.controller.js > showCommandeAgriculteur :
+    - title      : "Commande #X"
+    - activePage : "commandes-agri"
+    - commande   : {
+        id_commande, statut, total, created_at, updated_at,
+        client_prenom, client_nom, client_email, client_telephone,
+        lignes: [{ libelle, unite, quantite, prix_unitaire, offre_titre, stock_actuel }]
+      }
+    - success    : 'confirmee' ou null
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page">
+      <div class="offre-detail">
+
+        <a href="/commandes/agriculteur" class="back-link">← Retour aux commandes reçues</a>
+
+        <% if (success === 'confirmee') { %>
+          <div class="alert alert-success" role="alert" style="margin-top: 0.8rem;">
+            Commande confirmée ! Les stocks de vos offres ont été mis à jour automatiquement.
+          </div>
+        <% } %>
+
+        <h1>Commande #<%= commande.id_commande %></h1>
+
+        <!-- Statut + dates -->
+        <div class="offre-info">
+          <p>
+            <span class="info-label">Statut</span>
+            <% if (commande.statut === 'EN_ATTENTE') { %>
+              <span class="offre-badge badge-en-attente">En attente</span>
+            <% } else if (commande.statut === 'CONFIRMEE') { %>
+              <span class="offre-badge badge-confirmee">Confirmée</span>
+            <% } else if (commande.statut === 'LIVREE') { %>
+              <span class="offre-badge badge-livree">Livrée</span>
+            <% } else if (commande.statut === 'ANNULEE') { %>
+              <span class="offre-badge badge-annulee">Annulée</span>
+            <% } %>
+          </p>
+          <p>
+            <span class="info-label">Reçue le</span>
+            <strong>
+              <%= new Date(commande.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+            </strong>
+          </p>
+          <p>
+            <span class="info-label">Total commande</span>
+            <strong><%= Number(commande.total).toFixed(2) %> €</strong>
+          </p>
+        </div>
+
+        <!-- Informations client -->
+        <div class="offre-section">
+          <h2>Client</h2>
+          <p><strong><%= commande.client_prenom %> <%= commande.client_nom %></strong></p>
+          <% if (commande.client_email) { %>
+            <p><a href="mailto:<%= commande.client_email %>"><%= commande.client_email %></a></p>
+          <% } %>
+          <% if (commande.client_telephone) { %>
+            <p><%= commande.client_telephone %></p>
+          <% } %>
+        </div>
+
+        <!-- Produits commandés (uniquement les lignes de cette exploitation) -->
+        <div class="offre-section">
+          <h2>Produits commandés</h2>
+          <% if (commande.lignes && commande.lignes.length > 0) { %>
+            <table class="produits-table">
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Offre</th>
+                  <th>Prix unitaire</th>
+                  <th>Qté commandée</th>
+                  <th>Stock actuel</th>
+                  <th>Sous-total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% commande.lignes.forEach(ligne => { %>
+                  <tr>
+                    <td><strong><%= ligne.libelle %></strong></td>
+                    <td><%= ligne.offre_titre %></td>
+                    <td class="prix-cell"><%= Number(ligne.prix_unitaire).toFixed(2) %> € / <%= ligne.unite %></td>
+                    <td><%= Number(ligne.quantite) %></td>
+                    <td>
+                      <% if (ligne.stock_actuel !== null && ligne.stock_actuel !== undefined) { %>
+                        <%= Number(ligne.stock_actuel) %> <%= ligne.unite %>
+                      <% } else { %>
+                        <em>épuisé</em>
+                      <% } %>
+                    </td>
+                    <td class="prix-cell">
+                      <strong><%= (Number(ligne.prix_unitaire) * Number(ligne.quantite)).toFixed(2) %> €</strong>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p class="no-produits">Aucun produit de votre exploitation dans cette commande.</p>
+          <% } %>
+        </div>
+
+        <!-- Boutons d'action (uniquement si EN_ATTENTE) -->
+        <% if (commande.statut === 'EN_ATTENTE') { %>
+          <div class="offre-section">
+            <h2>Actions</h2>
+            <p style="margin-bottom: 1rem; color: #555;">
+              En confirmant la commande, les quantités commandées seront automatiquement
+              déduites de vos stocks. Si un produit est épuisé, la ligne sera retirée de l'offre.
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+
+              <!-- Confirmer -->
+              <form action="/commandes/agriculteur/<%= commande.id_commande %>/confirmer" method="post"
+                    onsubmit="return confirm('Confirmer cette commande ? Les stocks seront mis à jour.');">
+                <button type="submit" class="btn btn-primary">
+                  Confirmer la commande
+                </button>
+              </form>
+
+              <!-- Annuler -->
+              <form action="/commandes/agriculteur/<%= commande.id_commande %>/annuler" method="post"
+                    onsubmit="return confirm('Annuler cette commande ?');">
+                <button type="submit" class="btn btn-danger">
+                  Annuler la commande
+                </button>
+              </form>
+
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

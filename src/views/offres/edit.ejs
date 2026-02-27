@@ -1,0 +1,394 @@
+<!--
+  offres/edit.ejs
+  ----------------
+  Formulaire de modification d'une offre existante (agriculteurs uniquement).
+  Identique au formulaire de création mais pré-rempli avec les données existantes.
+
+  Variables reçues depuis offres.controller.js > showEditOffre :
+    - title      : "Modifier l'offre"
+    - activePage : "offres"
+    - offre      : Objet offre complet (avec produits[], date_debut, date_fin, statut...)
+    - formData   : Valeurs du formulaire (initiales ou après erreur de validation)
+    - error      : Message d'erreur (null si aucune erreur)
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page form-page">
+      <div class="form-card">
+
+        <!-- En-tête du formulaire -->
+        <div class="form-card-header">
+          <span class="form-card-icon">✏️</span>
+          <h1 class="form-card-title">Modifier l'offre</h1>
+          <p class="form-card-subtitle">
+            Modifiez les informations et les produits de votre offre.
+          </p>
+        </div>
+
+        <!-- Affichage de l'erreur si présente -->
+        <% if (error) { %>
+          <div class="alert alert-error" role="alert">
+            <span class="alert-icon">⚠️</span>
+            <%= error %>
+          </div>
+        <% } %>
+
+        <!-- Formulaire de modification -->
+        <form action="/offres/<%= offre.id_offre %>/edit" method="post" class="auth-form" novalidate>
+
+          <!-- ── Informations générales de l'offre ──────────── -->
+          <fieldset class="form-fieldset">
+            <legend class="form-legend">Informations de l'offre</legend>
+
+            <!-- Titre -->
+            <div class="form-group">
+              <label for="titre" class="form-label">
+                Titre de l'offre <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="titre"
+                name="titre"
+                class="form-input"
+                value="<%= formData.titre || '' %>"
+                placeholder="Ex: Panier de légumes de saison"
+                required
+              />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-input form-textarea"
+                rows="4"
+                placeholder="Décrivez votre offre..."
+              ><%= formData.description || '' %></textarea>
+            </div>
+
+            <!-- Dates de disponibilité -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="date_debut" class="form-label">Date de début</label>
+                <input
+                  type="date"
+                  id="date_debut"
+                  name="date_debut"
+                  class="form-input"
+                  value="<%= formData.date_debut || '' %>"
+                />
+              </div>
+              <div class="form-group">
+                <label for="date_fin" class="form-label">Date de fin</label>
+                <input
+                  type="date"
+                  id="date_fin"
+                  name="date_fin"
+                  class="form-input"
+                  value="<%= formData.date_fin || '' %>"
+                />
+              </div>
+            </div>
+
+            <!-- Statut de l'offre -->
+            <div class="form-group">
+              <label for="statut" class="form-label">Statut de l'offre</label>
+              <select id="statut" name="statut" class="form-input form-select">
+                <option value="ACTIVE"   <%= formData.statut === 'ACTIVE'   ? 'selected' : '' %>>Active</option>
+                <option value="PAUSE"    <%= formData.statut === 'PAUSE'    ? 'selected' : '' %>>En pause</option>
+                <option value="TERMINEE" <%= formData.statut === 'TERMINEE' ? 'selected' : '' %>>Terminée</option>
+              </select>
+            </div>
+
+          </fieldset>
+
+
+          <!-- ── Produits de l'offre ───────────────────────── -->
+          <fieldset class="form-fieldset" id="produits-fieldset">
+            <legend class="form-legend">
+              Produits proposés <span class="required">*</span>
+            </legend>
+
+            <p class="form-hint">
+              Modifiez, ajoutez ou supprimez des produits. Au moins un produit est requis.
+            </p>
+
+            <!-- Conteneur des lignes de produit (manipulé par JS) -->
+            <div id="produits-container">
+              <!--
+                On génère une ligne par produit existant.
+                Les index commencent à 0 et sont incrémentés.
+              -->
+              <% offre.produits.forEach((p, index) => { %>
+                <div class="produit-row" id="produit-row-<%= index %>">
+                  <div class="produit-row-fields">
+
+                    <!-- Libellé du produit -->
+                    <div class="form-group">
+                      <label class="form-label">
+                        Produit <span class="required">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="produit_libelle[]"
+                        class="form-input"
+                        value="<%= p.libelle %>"
+                        placeholder="Ex: Tomates cerises"
+                        required
+                      />
+                    </div>
+
+                    <!-- Unité de mesure -->
+                    <div class="form-group form-group-small">
+                      <label class="form-label">Unité <span class="required">*</span></label>
+                      <select name="produit_unite[]" class="form-input form-select" required>
+                        <option value="kg"       <%= p.unite === 'kg'       ? 'selected' : '' %>>kg</option>
+                        <option value="pièce"    <%= p.unite === 'pièce'    ? 'selected' : '' %>>pièce</option>
+                        <option value="litre"    <%= p.unite === 'litre'    ? 'selected' : '' %>>litre</option>
+                        <option value="botte"    <%= p.unite === 'botte'    ? 'selected' : '' %>>botte</option>
+                        <option value="douzaine" <%= p.unite === 'douzaine' ? 'selected' : '' %>>douzaine</option>
+                        <option value="sac"      <%= p.unite === 'sac'      ? 'selected' : '' %>>sac</option>
+                      </select>
+                    </div>
+
+                    <!-- Catégorie -->
+                    <div class="form-group">
+                      <label class="form-label">Catégorie</label>
+                      <select name="produit_categorie[]" class="form-input form-select">
+                        <option value="légume"          <%= p.categorie === 'légume'          ? 'selected' : '' %>>Légume</option>
+                        <option value="fruit"           <%= p.categorie === 'fruit'           ? 'selected' : '' %>>Fruit</option>
+                        <option value="viande"          <%= p.categorie === 'viande'          ? 'selected' : '' %>>Viande</option>
+                        <option value="produit laitier" <%= p.categorie === 'produit laitier' ? 'selected' : '' %>>Produit laitier</option>
+                        <option value="œufs"            <%= p.categorie === 'œufs'            ? 'selected' : '' %>>Œufs</option>
+                        <option value="céréale"         <%= p.categorie === 'céréale'         ? 'selected' : '' %>>Céréale</option>
+                        <option value="autre"           <%= p.categorie === 'autre'           ? 'selected' : '' %>>Autre</option>
+                      </select>
+                    </div>
+
+                    <!-- Prix -->
+                    <div class="form-group form-group-small">
+                      <label class="form-label">
+                        Prix (€) <span class="required">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="produit_prix[]"
+                        class="form-input"
+                        value="<%= parseFloat(p.prix).toFixed(2) %>"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+
+                    <!-- Quantité -->
+                    <div class="form-group form-group-small">
+                      <label class="form-label">
+                        Quantité <span class="required">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="produit_qte[]"
+                        class="form-input"
+                        value="<%= parseFloat(p.quantite) %>"
+                        min="0"
+                        step="0.5"
+                        required
+                      />
+                    </div>
+
+                  </div>
+                  <!-- Bouton supprimer (affiché uniquement s'il y a plus d'un produit) -->
+                  <% if (index > 0) { %>
+                    <button type="button" class="btn-remove-produit"
+                            onclick="supprimerProduit('produit-row-<%= index %>')"
+                            aria-label="Supprimer ce produit">
+                      ✕
+                    </button>
+                  <% } %>
+                </div>
+              <% }); %>
+
+              <!-- Si aucun produit (ne devrait pas arriver, mais sécurité) -->
+              <% if (!offre.produits || offre.produits.length === 0) { %>
+                <div class="produit-row" id="produit-row-0">
+                  <div class="produit-row-fields">
+                    <div class="form-group">
+                      <label class="form-label">Produit <span class="required">*</span></label>
+                      <input type="text" name="produit_libelle[]" class="form-input"
+                             placeholder="Ex: Tomates cerises" required />
+                    </div>
+                    <div class="form-group form-group-small">
+                      <label class="form-label">Unité <span class="required">*</span></label>
+                      <select name="produit_unite[]" class="form-input form-select" required>
+                        <option value="kg">kg</option>
+                        <option value="pièce">pièce</option>
+                        <option value="litre">litre</option>
+                        <option value="botte">botte</option>
+                        <option value="douzaine">douzaine</option>
+                        <option value="sac">sac</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Catégorie</label>
+                      <select name="produit_categorie[]" class="form-input form-select">
+                        <option value="légume">Légume</option>
+                        <option value="fruit">Fruit</option>
+                        <option value="viande">Viande</option>
+                        <option value="produit laitier">Produit laitier</option>
+                        <option value="œufs">Œufs</option>
+                        <option value="céréale">Céréale</option>
+                        <option value="autre">Autre</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group-small">
+                      <label class="form-label">Prix (€) <span class="required">*</span></label>
+                      <input type="number" name="produit_prix[]" class="form-input"
+                             placeholder="3.50" min="0" step="0.01" required />
+                    </div>
+                    <div class="form-group form-group-small">
+                      <label class="form-label">Quantité <span class="required">*</span></label>
+                      <input type="number" name="produit_qte[]" class="form-input"
+                             placeholder="50" min="0" step="0.5" required />
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Bouton pour ajouter une ligne produit -->
+            <button type="button" class="btn-add-produit" onclick="ajouterProduit()">
+              + Ajouter un produit
+            </button>
+
+          </fieldset>
+
+          <!-- Boutons d'action -->
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary btn-full">
+              Enregistrer les modifications
+            </button>
+          </div>
+
+        </form>
+
+        <!-- Zone de suppression -->
+        <div class="danger-zone">
+          <h3 class="danger-zone-title">Zone de danger</h3>
+          <p class="danger-zone-text">
+            La suppression est irréversible. Votre offre ne sera plus visible par les visiteurs.
+          </p>
+          <form action="/offres/<%= offre.id_offre %>/delete" method="post"
+                onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ? Cette action est irréversible.');">
+            <button type="submit" class="btn btn-danger">
+              Supprimer cette offre
+            </button>
+          </form>
+        </div>
+
+        <!-- Lien retour -->
+        <div class="auth-footer">
+          <p>
+            <a href="/offres/mes-offres" class="link-accent">← Retour à mes offres</a>
+          </p>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+
+    <script>
+      /**
+       * Compteur pour les lignes produit dynamiques.
+       * On initialise au nombre de produits existants pour éviter les conflits d'ID.
+       */
+      let compteurLigne = <%= offre.produits ? offre.produits.length : 1 %>;
+
+      /**
+       * ajouterProduit — Crée dynamiquement une nouvelle ligne de produit.
+       */
+      function ajouterProduit() {
+        const container = document.getElementById('produits-container');
+        const id        = compteurLigne++;
+
+        const div = document.createElement('div');
+        div.className = 'produit-row';
+        div.id        = `produit-row-${id}`;
+
+        div.innerHTML = `
+          <div class="produit-row-fields">
+            <div class="form-group">
+              <label class="form-label">Produit <span class="required">*</span></label>
+              <input type="text" name="produit_libelle[]" class="form-input"
+                     placeholder="Ex: Pommes" required />
+            </div>
+            <div class="form-group form-group-small">
+              <label class="form-label">Unité <span class="required">*</span></label>
+              <select name="produit_unite[]" class="form-input form-select" required>
+                <option value="kg">kg</option>
+                <option value="pièce">pièce</option>
+                <option value="litre">litre</option>
+                <option value="botte">botte</option>
+                <option value="douzaine">douzaine</option>
+                <option value="sac">sac</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Catégorie</label>
+              <select name="produit_categorie[]" class="form-input form-select">
+                <option value="légume">Légume</option>
+                <option value="fruit">Fruit</option>
+                <option value="viande">Viande</option>
+                <option value="produit laitier">Produit laitier</option>
+                <option value="œufs">Œufs</option>
+                <option value="céréale">Céréale</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="form-group form-group-small">
+              <label class="form-label">Prix (€) <span class="required">*</span></label>
+              <input type="number" name="produit_prix[]" class="form-input"
+                     placeholder="3.50" min="0" step="0.01" required />
+            </div>
+            <div class="form-group form-group-small">
+              <label class="form-label">Quantité <span class="required">*</span></label>
+              <input type="number" name="produit_qte[]" class="form-input"
+                     placeholder="50" min="0" step="0.5" required />
+            </div>
+          </div>
+          <button type="button" class="btn-remove-produit"
+                  onclick="supprimerProduit('produit-row-${id}')"
+                  aria-label="Supprimer ce produit">
+            ✕
+          </button>
+        `;
+
+        container.appendChild(div);
+      }
+
+      /**
+       * supprimerProduit — Retire une ligne produit du formulaire.
+       */
+      function supprimerProduit(rowId) {
+        const row = document.getElementById(rowId);
+        if (row) row.remove();
+      }
+    </script>
+
+  </body>
+</html>

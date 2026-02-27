@@ -1,0 +1,479 @@
+<!--
+  home.ejs — Page d'accueil B2CFarmer v6
+  Marché Doux · Blob Hero · Étagère Horizontale · Chaud & Organique
+
+  Sections :
+    1. Hero (blobs CSS, split layout)
+    2. Trust band (crème chaude)
+    3. Comment ça marche (grid 3 cellules)
+    4. Étagère — offres du moment (scroll horizontal)
+    5. Quote featured (fond crème)
+    6. Témoignages (grille 2)
+    7. FAQ (accordéon details/summary)
+    8. CTA (fond sauge chaud)
+    9. Footer v4 (clair et chaud)
+
+  Variables EJS : title, activePage, user (res.locals)
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — Commandez en direct à la ferme</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include("navbar") %>
+
+    <main class="home">
+
+      <!-- ═══════════════════════════════════════════════════════
+           1. HERO — blobs CSS via ::before/::after
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-hero">
+        <div class="home-inner home-hero-split">
+
+          <!-- Colonne gauche : message principal -->
+          <div class="home-hero-content">
+            <p class="home-eyebrow">Circuit court · Sans intermédiaire</p>
+
+            <h1 class="home-hero-title">
+              Du producteur,<br /><em>directement</em> à vous.
+            </h1>
+
+            <p class="home-hero-sub">
+              Commandez des produits frais auprès d'agriculteurs locaux,
+              au juste prix — sans commission, sans intermédiaire.
+            </p>
+
+            <div class="home-hero-actions">
+              <% if (!user) { %>
+                <a href="/offres" class="btn btn-primary btn-lg">Voir les offres</a>
+                <a href="/auth/register" class="btn btn-outline btn-lg">Créer un compte</a>
+              <% } else if (user.role === 'PARTICULIER') { %>
+                <a href="/offres" class="btn btn-primary btn-lg">Explorer les offres</a>
+                <a href="/demandes/creer" class="btn btn-outline btn-lg">Publier une demande</a>
+              <% } else { %>
+                <a href="/offres/creer" class="btn btn-primary btn-lg">Publier une offre</a>
+                <a href="/demandes" class="btn btn-outline btn-lg">Voir les demandes</a>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Colonne droite : cartes preuve -->
+          <aside class="home-hero-proof" aria-hidden="true">
+            <div class="hero-proof-card" style="--delay:.15s">
+              <span class="hero-proof-number">0 %</span>
+              <span class="hero-proof-label">de commission</span>
+            </div>
+            <div class="hero-proof-card hero-proof-card--accent" style="--delay:.28s">
+              <span class="hero-proof-number">Direct</span>
+              <span class="hero-proof-label">Producteur → consommateur</span>
+            </div>
+            <div class="hero-proof-card" style="--delay:.41s">
+              <span class="hero-proof-number">Local</span>
+              <span class="hero-proof-label">Agriculteurs de votre région</span>
+            </div>
+          </aside>
+
+        </div>
+
+        <!-- Indicateur de scroll -->
+        <div class="home-hero-scroll" aria-hidden="true">
+          <span class="home-hero-scroll-line"></span>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           2. TRUST BAND (crème chaude)
+      ═══════════════════════════════════════════════════════ -->
+      <div class="home-trust-band" aria-label="Nos engagements">
+        <div class="home-inner">
+          <ul class="home-trust-list">
+            <li>Circuit court garanti</li>
+            <li>0 % de commission</li>
+            <li>Contact direct avec le producteur</li>
+            <li>Prix justes & transparents</li>
+            <li>Produits locaux et de saison</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           3. COMMENT ÇA MARCHE — grid horizontal
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-how" data-reveal>
+        <div class="home-inner">
+
+          <header class="home-section-header">
+            <p class="home-eyebrow">Mode d'emploi</p>
+            <h2>Simple. Direct. Local.</h2>
+            <p class="home-section-sub">De la recherche à la commande, en 3 étapes.</p>
+          </header>
+
+          <ol class="home-how-grid" aria-label="Étapes du processus">
+
+            <li class="home-how-card">
+              <div class="home-how-card-num" aria-hidden="true">01</div>
+              <h3>Parcourez les offres locales</h3>
+              <p>Consultez les produits disponibles près de chez vous, avec les prix et
+                 quantités proposés directement par les agriculteurs de votre région.</p>
+              <a href="/offres" class="home-inline-link">Voir les offres &rarr;</a>
+            </li>
+
+            <li class="home-how-card">
+              <div class="home-how-card-num" aria-hidden="true">02</div>
+              <h3>Publiez ou répondez à une demande</h3>
+              <p>Vous ne trouvez pas ce que vous cherchez ? Postez une demande et laissez
+                 les producteurs locaux vous répondre directement.</p>
+              <% if (user && user.role === 'PARTICULIER') { %>
+                <a href="/demandes/creer" class="home-inline-link">Créer une demande &rarr;</a>
+              <% } else if (user && user.role === 'AGRICULTEUR') { %>
+                <a href="/demandes" class="home-inline-link">Voir les demandes &rarr;</a>
+              <% } else { %>
+                <a href="/auth/register" class="home-inline-link">S'inscrire pour commencer &rarr;</a>
+              <% } %>
+            </li>
+
+            <li class="home-how-card">
+              <div class="home-how-card-num" aria-hidden="true">03</div>
+              <h3>Commandez sans intermédiaire</h3>
+              <p>Ajoutez les produits au panier et validez votre commande. Le paiement
+                 va directement au producteur, sans frais cachés ni commission.</p>
+              <a href="/panier" class="home-inline-link">Mon panier &rarr;</a>
+            </li>
+
+          </ol>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           4. ÉTAGÈRE — OFFRES DU MOMENT (scroll horizontal)
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-offres" data-reveal>
+        <div class="home-inner">
+          <header class="home-section-header home-section-header-split">
+            <div>
+              <p class="home-eyebrow">À la une</p>
+              <h2>En ce moment près de chez vous</h2>
+            </div>
+            <a href="/offres" class="btn btn-outline">Tout voir &rarr;</a>
+          </header>
+        </div>
+
+        <!-- Étagère scrollable (pleine largeur relative à home-inner) -->
+        <div class="home-inner">
+          <div class="home-shelf-wrap">
+            <div class="home-shelf" role="list">
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Légumes</span>
+                <h3 class="shelf-card-name">Tomates cerises · Carottes · Courgettes</h3>
+                <p class="shelf-card-farm">Ferme des Collines — Haute-Loire</p>
+                <p class="shelf-card-price">2,50 € <span>/ kg</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Fruits</span>
+                <h3 class="shelf-card-name">Fraises Mara des bois · Framboises</h3>
+                <p class="shelf-card-farm">Le Pré Fleuri — Loire</p>
+                <p class="shelf-card-price">5,00 € <span>/ barquette</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Légumes</span>
+                <h3 class="shelf-card-name">Pommes de terre · Oignons · Ail</h3>
+                <p class="shelf-card-farm">GAEC du Soleil — Puy-de-Dôme</p>
+                <p class="shelf-card-price">1,80 € <span>/ kg</span></p>
+                <span class="shelf-card-badge shelf-card-badge-low">Dernières unités</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Fromage</span>
+                <h3 class="shelf-card-name">Tomme de brebis affinée</h3>
+                <p class="shelf-card-farm">Bergerie du Rhône — Ardèche</p>
+                <p class="shelf-card-price">18,00 € <span>/ kg</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Céréales</span>
+                <h3 class="shelf-card-name">Farine de blé T80 · Épeautre</h3>
+                <p class="shelf-card-farm">Moulin Valette — Cantal</p>
+                <p class="shelf-card-price">3,20 € <span>/ kg</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Miel</span>
+                <h3 class="shelf-card-name">Miel de châtaignier · Toutes fleurs</h3>
+                <p class="shelf-card-farm">Ruches du Livradois — Haute-Loire</p>
+                <p class="shelf-card-price">12,50 € <span>/ pot 500 g</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+              <article class="shelf-card" role="listitem">
+                <span class="shelf-card-tag">Œufs</span>
+                <h3 class="shelf-card-name">Œufs de poules élevées en plein air</h3>
+                <p class="shelf-card-farm">La Ferme du Coq — Allier</p>
+                <p class="shelf-card-price">4,50 € <span>/ douzaine</span></p>
+                <span class="shelf-card-badge shelf-card-badge-ok">Disponible</span>
+                <a href="/offres" class="btn btn-primary btn-sm" style="margin-top:auto">Commander</a>
+              </article>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           5. QUOTE FEATURED (fond crème, pas sombre)
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-featured-quote" data-reveal>
+        <div class="home-inner">
+          <blockquote class="home-featured-quote-inner">
+            <p>«&thinsp;En tant qu'agriculteur, enfin une plateforme qui ne prend pas de
+               commission. Je garde 100&thinsp;% de mes ventes, et je parle directement
+               à mes clients.&thinsp;»</p>
+            <footer>Jean-Pierre D. — Maraîcher, Drôme</footer>
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           6. TÉMOIGNAGES
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-temoins" data-reveal>
+        <div class="home-inner">
+          <p class="home-eyebrow" style="display:block; text-align:center; margin-bottom:2rem;">
+            Ils nous font confiance
+          </p>
+          <div class="home-temoins-list">
+
+            <blockquote class="home-temoin">
+              <p>«&thinsp;Depuis que j'utilise B2CFarmer, je mange local sans effort.
+                 Les prix sont vrais et les producteurs sont réactifs.&thinsp;»</p>
+              <footer>Marie L. — Particulière, Lyon</footer>
+            </blockquote>
+
+            <blockquote class="home-temoin">
+              <p>«&thinsp;Simple à utiliser, les commandes arrivent directement, et le contact
+                 avec les agriculteurs est vraiment agréable.&thinsp;»</p>
+              <footer>Sophie M. — Particulière, Clermont-Ferrand</footer>
+            </blockquote>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           7. FAQ — accordéon details/summary (pas de JS requis)
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-faq" data-reveal id="faq">
+        <div class="home-inner home-faq-inner">
+
+          <header class="home-section-header">
+            <p class="home-eyebrow">Vous avez des questions ?</p>
+            <h2>FAQ</h2>
+          </header>
+
+          <div class="home-faq-list">
+
+            <div class="home-faq-item">
+              <details>
+                <summary class="home-faq-q">
+                  B2CFarmer prend-il des commissions sur les ventes ?
+                </summary>
+                <div class="home-faq-a">
+                  <p>Non. B2CFarmer est une plateforme sans commission. 100 % du montant
+                     de la commande va directement au producteur. Nous croyons qu'un circuit
+                     court équitable doit l'être aussi financièrement.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="home-faq-item">
+              <details>
+                <summary class="home-faq-q">
+                  Comment puis-je contacter un producteur ?
+                </summary>
+                <div class="home-faq-a">
+                  <p>Chaque offre affiche les coordonnées du producteur. Vous pouvez
+                     également utiliser le système de demandes pour qu'un producteur vous
+                     contacte directement.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="home-faq-item">
+              <details>
+                <summary class="home-faq-q">
+                  Quelle est la différence entre une offre et une demande ?
+                </summary>
+                <div class="home-faq-a">
+                  <p>Une <strong>offre</strong> est publiée par un agriculteur : il propose
+                     ses produits avec prix et quantités. Une <strong>demande</strong> est
+                     publiée par un particulier : il indique ce qu'il cherche, et les
+                     agriculteurs intéressés lui répondent.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="home-faq-item">
+              <details>
+                <summary class="home-faq-q">
+                  Comment s'inscrire comme agriculteur ?
+                </summary>
+                <div class="home-faq-a">
+                  <p>Lors de l'inscription, choisissez le rôle <strong>« Agriculteur »</strong>.
+                     Vous pourrez alors renseigner votre exploitation et commencer à publier
+                     vos offres immédiatement.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="home-faq-item">
+              <details>
+                <summary class="home-faq-q">
+                  Puis-je passer commande sans créer de compte ?
+                </summary>
+                <div class="home-faq-a">
+                  <p>Non, un compte est nécessaire pour garantir la traçabilité de chaque
+                     transaction. L'inscription est gratuite et prend moins d'une minute.</p>
+                </div>
+              </details>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           8. CTA — fond sauge chaud (pas vert très foncé)
+      ═══════════════════════════════════════════════════════ -->
+      <section class="home-cta-dark" data-reveal>
+        <div class="home-inner">
+          <h2 class="home-cta-title">
+            Prêt à rejoindre<br />le circuit court ?
+          </h2>
+          <p class="home-cta-sub">
+            <% if (!user) { %>
+              Créez votre compte gratuitement et commencez en quelques minutes.
+            <% } else { %>
+              Bonne visite, <%= user.prenom %> — tout est à portée de main.
+            <% } %>
+          </p>
+          <div class="home-cta-actions">
+            <% if (!user) { %>
+              <a href="/auth/register" class="btn btn-white btn-lg">Rejoindre B2CFarmer</a>
+              <a href="/offres" class="btn btn-outline-white btn-lg">Explorer les offres</a>
+            <% } else if (user.role === 'PARTICULIER') { %>
+              <a href="/offres" class="btn btn-white btn-lg">Explorer les offres</a>
+              <a href="/demandes/creer" class="btn btn-outline-white btn-lg">Publier une demande</a>
+            <% } else { %>
+              <a href="/offres/creer" class="btn btn-white btn-lg">Publier mon offre</a>
+              <a href="/demandes" class="btn btn-outline-white btn-lg">Voir les demandes</a>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════
+         9. FOOTER — clair et chaud
+    ═══════════════════════════════════════════════════════ -->
+    <footer class="site-footer-v4">
+      <div class="home-inner footer-v4-inner">
+
+        <div class="footer-v4-brand">
+          <a href="/" class="footer-v4-logo">B2CFarmer</a>
+          <p>Circuit court, liens forts.<br />Commandez en direct à la ferme.</p>
+        </div>
+
+        <nav class="footer-v4-nav" aria-label="Navigation secondaire">
+
+          <div class="footer-v4-col">
+            <h4>Naviguer</h4>
+            <ul>
+              <li><a href="/offres">Les offres</a></li>
+              <li><a href="/demandes">Les demandes</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-v4-col">
+            <h4>Mon compte</h4>
+            <ul>
+              <% if (!user) { %>
+                <li><a href="/auth/login">Se connecter</a></li>
+                <li><a href="/auth/register">S'inscrire</a></li>
+              <% } else { %>
+                <li><a href="/mon-compte">Mon profil</a></li>
+                <li><a href="/panier">Mon panier</a></li>
+                <li><a href="/commandes">Mes commandes</a></li>
+                <% if (user.role === 'AGRICULTEUR') { %>
+                  <li><a href="/offres/mes-offres">Mes offres</a></li>
+                  <li><a href="/offres/creer">Publier une offre</a></li>
+                <% } else { %>
+                  <li><a href="/demandes/creer">Publier une demande</a></li>
+                <% } %>
+              <% } %>
+            </ul>
+          </div>
+
+          <div class="footer-v4-col">
+            <h4>Aide</h4>
+            <ul>
+              <li><a href="/#faq">FAQ</a></li>
+            </ul>
+          </div>
+
+        </nav>
+      </div>
+
+      <div class="footer-v4-bottom">
+        <div class="home-inner">
+          <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      /* Progressive enhancement : scroll reveal */
+      document.documentElement.classList.add('js');
+
+      const revealObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            revealObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('[data-reveal]').forEach(el => revealObs.observe(el));
+
+      /* FAQ : ferme les autres items quand un s'ouvre */
+      document.querySelectorAll('.home-faq-item details').forEach(detail => {
+        detail.addEventListener('toggle', () => {
+          if (detail.open) {
+            document.querySelectorAll('.home-faq-item details').forEach(other => {
+              if (other !== detail) other.removeAttribute('open');
+            });
+          }
+        });
+      });
+    </script>
+
+  </body>
+</html>
