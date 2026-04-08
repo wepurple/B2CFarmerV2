@@ -1,0 +1,13 @@
+<!--
+  speed-insights.ejs
+  ------------------
+  Vercel Speed Insights tracking script.
+  This partial should be included before the closing </body> tag in all pages.
+  
+  For HTML-based applications, Speed Insights uses a script tag implementation.
+  The script will automatically track page performance metrics when deployed to Vercel.
+-->
+<script>
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
