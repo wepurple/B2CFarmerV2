@@ -549,49 +549,5 @@ et déconnecter l'utilisateur à son insu. Le `POST` exige une action utilisateu
 
 ---
 
-
-### Pièges EJS 4 — comportements à connaître
-
-EJS 4 (utilisé dans ce projet) a deux comportements différents d'EJS 3 :
-
-**1. Les commentaires EJS ferment au premier `%>`**
-
-```ejs
-<%# Ceci est un commentaire — attention au premier %> rencontré %>
-<%#
-  Ne pas mettre de balises <%= variable %> ici
-  EJS fermerait le commentaire dès le premier %>
-%>
-```
-
-**2. Les commentaires HTML n'empêchent pas l'exécution du code EJS**
-
-```ejs
-<!-- <%= user.email %> -->
-<!-- Ce code EJS EST exécuté malgré le commentaire HTML -->
-```
-
-**Bonne pratique** : utiliser les commentaires HTML avec du texte brut uniquement.
-Pour masquer du code EJS, utiliser `<%# %>` en étant vigilant à la fermeture.
-
----
-
-### Injection de l'utilisateur dans les vues
-
-La variable `user` est disponible dans **tous** les templates EJS grâce au middleware global :
-
-```js
-// app.js
-app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  next();
-});
-```
-
-Il n'est donc **pas nécessaire** de passer `user` manuellement dans chaque `res.render()`.
-Elle est automatiquement accessible dans tous les fichiers `.ejs`.
-
----
-
 *Projet réalisé dans le cadre d'un BTS — B2CFarmer, 2025.*
 *Plateforme de circuit court : relier les producteurs aux consommateurs locaux.*
