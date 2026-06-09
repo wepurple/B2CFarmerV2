@@ -1,0 +1,180 @@
+<!--
+  promotions/edit.ejs
+  -------------------
+  Formulaire de modification d'une promotion d'offre.
+-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> — B2CFarmer</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <%- include('../navbar') %>
+
+    <main class="page form-page">
+      <div class="form-card">
+        <div class="form-card-header">
+          <span class="form-card-icon">%</span>
+          <h1 class="form-card-title">Modifier la promotion</h1>
+          <p class="form-card-subtitle">
+            Offre : <%= offre.titre %>
+          </p>
+        </div>
+
+        <% if (error) { %>
+          <div class="alert alert-error" role="alert"><%= error %></div>
+        <% } %>
+
+        <% const typesPromotion = ['POURCENTAGE', 'MONTANT_FIXE', 'QUANTITE']; %>
+        <% const typeSelectionne = typesPromotion.includes(formData.type_promotion) ? formData.type_promotion : 'POURCENTAGE'; %>
+
+        <form action="/promotions/<%= promotion.id_promotion %>/edit" method="post" class="auth-form" novalidate>
+          <fieldset class="form-fieldset">
+            <legend class="form-legend">Informations de la promotion</legend>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="type_promotion" class="form-label">Type <span class="required">*</span></label>
+                <select id="type_promotion" name="type_promotion" class="form-input form-select" required>
+                  <option value="POURCENTAGE" <%= typeSelectionne === 'POURCENTAGE' ? 'selected' : '' %>>Pourcentage</option>
+                  <option value="MONTANT_FIXE" <%= typeSelectionne === 'MONTANT_FIXE' ? 'selected' : '' %>>Montant fixe</option>
+                  <option value="QUANTITE" <%= typeSelectionne === 'QUANTITE' ? 'selected' : '' %>>Quantité</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="libelle" class="form-label">Libellé <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="libelle"
+                  name="libelle"
+                  class="form-input"
+                  value="<%= formData.libelle || '' %>"
+                  required
+                >
+              </div>
+
+              <div class="form-group form-group-small">
+                <label for="valeur" class="form-label">Valeur <span class="required">*</span></label>
+                <input
+                  type="number"
+                  id="valeur"
+                  name="valeur"
+                  class="form-input"
+                  value="<%= formData.valeur !== undefined && formData.valeur !== null ? formData.valeur : '' %>"
+                  min="0"
+                  step="0.01"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="id_produit" class="form-label">Produit concerné</label>
+              <select id="id_produit" name="id_produit" class="form-input form-select">
+                <option value="" <%= !formData.id_produit ? 'selected' : '' %>>Toute l'offre</option>
+                <% offre.produits.forEach(produit => { %>
+                  <option
+                    value="<%= produit.id_produit %>"
+                    <%= Number(formData.id_produit) === Number(produit.id_produit) ? 'selected' : '' %>
+                  >
+                    <%= produit.libelle %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group form-group-small">
+                <label for="quantite_min" class="form-label">Quantité min.</label>
+                <input
+                  type="number"
+                  id="quantite_min"
+                  name="quantite_min"
+                  class="form-input"
+                  value="<%= formData.quantite_min !== undefined && formData.quantite_min !== null ? formData.quantite_min : '' %>"
+                  min="0"
+                  step="1"
+                >
+              </div>
+
+              <div class="form-group form-group-small">
+                <label for="montant_min" class="form-label">Montant min.</label>
+                <input
+                  type="number"
+                  id="montant_min"
+                  name="montant_min"
+                  class="form-input"
+                  value="<%= formData.montant_min !== undefined && formData.montant_min !== null ? formData.montant_min : '' %>"
+                  min="0"
+                  step="0.01"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="date_debut" class="form-label">Date de début</label>
+                <input
+                  type="date"
+                  id="date_debut"
+                  name="date_debut"
+                  class="form-input"
+                  value="<%= formData.date_debut || '' %>"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="date_fin" class="form-label">Date de fin</label>
+                <input
+                  type="date"
+                  id="date_fin"
+                  name="date_fin"
+                  class="form-input"
+                  value="<%= formData.date_fin || '' %>"
+                >
+              </div>
+            </div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" name="active" <%= formData.active ? 'checked' : '' %>>
+              <span>Promotion active</span>
+            </label>
+          </fieldset>
+
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary btn-full">
+              Enregistrer la promotion
+            </button>
+          </div>
+        </form>
+
+        <div class="danger-zone">
+          <h3 class="danger-zone-title">Zone de danger</h3>
+          <p class="danger-zone-text">
+            La suppression retire définitivement cette promotion de l'offre.
+          </p>
+          <form
+            action="/promotions/<%= promotion.id_promotion %>/delete"
+            method="post"
+            onsubmit="return confirm('Supprimer cette promotion ?');"
+          >
+            <button type="submit" class="btn btn-danger">Supprimer cette promotion</button>
+          </form>
+        </div>
+
+        <div class="auth-footer">
+          <p>
+            <a href="/offres/<%= promotion.id_offre %>" class="link-accent">← Retour à l'offre</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2025 B2CFarmer — Circuit court, liens forts</p>
+    </footer>
+  </body>
+</html>

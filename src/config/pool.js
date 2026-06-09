@@ -8,6 +8,9 @@
 
 const { Pool } = require("pg");
 
+const useSsl =
+  process.env.DB_SSL === "true" || process.env.NODE_ENV === "production";
+
 // Options communes pour tous les pools
 const poolConfig = {
   host: process.env.DB_HOST,
@@ -15,10 +18,7 @@ const poolConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
 
   // Vercel = serverless : chaque invocation est un process isolé.
   // max: 1 en production évite d'épuiser le pool Supabase (limite Session mode).

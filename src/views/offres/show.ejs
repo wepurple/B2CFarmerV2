@@ -119,6 +119,82 @@
         </div>
 
 
+        <% if (user && user.role === 'AGRICULTEUR' && Number(user.id_user) === Number(offre.id_user_agri)) { %>
+          <div class="offre-section promotions-section">
+            <h2>Promotions de cette offre</h2>
+
+            <% if (promotionSuccess === 'create') { %>
+              <div class="alert alert-success" role="alert">La promotion a bien été ajoutée.</div>
+            <% } else if (promotionSuccess === 'edit') { %>
+              <div class="alert alert-success" role="alert">La promotion a bien été modifiée.</div>
+            <% } else if (promotionSuccess === 'delete') { %>
+              <div class="alert alert-success" role="alert">La promotion a bien été supprimée.</div>
+            <% } %>
+
+            <% if (promotionError) { %>
+              <div class="alert alert-error" role="alert"><%= promotionError %></div>
+            <% } %>
+
+            <% if (promotions && promotions.length > 0) { %>
+              <table class="produits-table promotions-table">
+                <thead>
+                  <tr>
+                    <th>Promotion</th>
+                    <th>Type</th>
+                    <th>Valeur</th>
+                    <th>Produit</th>
+                    <th>Période</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% promotions.forEach(promotion => { %>
+                    <tr>
+                      <td>
+                        <strong><%= promotion.libelle %></strong>
+                      </td>
+                      <td><%= promotion.type_promotion %></td>
+                      <td class="prix-cell"><%= parseFloat(promotion.valeur).toFixed(2) %></td>
+                      <td><%= promotion.produit_libelle || "Toute l'offre" %></td>
+                      <td>
+                        <% if (promotion.date_debut || promotion.date_fin) { %>
+                          <%= promotion.date_debut ? new Date(promotion.date_debut).toLocaleDateString('fr-FR') : 'Début libre' %>
+                          -
+                          <%= promotion.date_fin ? new Date(promotion.date_fin).toLocaleDateString('fr-FR') : 'Fin libre' %>
+                        <% } else { %>
+                          Non limitée
+                        <% } %>
+                      </td>
+                      <td>
+                        <span class="offre-badge <%= promotion.active ? 'badge-active' : 'badge-pause' %>">
+                          <%= promotion.active ? 'Active' : 'Inactive' %>
+                        </span>
+                      </td>
+                      <td>
+                        <div class="promotion-actions">
+                          <a href="/promotions/<%= promotion.id_promotion %>/edit" class="btn btn-secondary btn-sm">Modifier</a>
+                          <form
+                            action="/promotions/<%= promotion.id_promotion %>/delete"
+                            method="post"
+                            style="display:inline;"
+                            onsubmit="return confirm('Supprimer cette promotion ?');"
+                          >
+                            <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            <% } else { %>
+              <p class="no-produits">Aucune promotion n'est encore associée à cette offre.</p>
+            <% } %>
+          </div>
+        <% } %>
+
+
         <!-- Section de contact — comportement conditionnel selon le rôle -->
         <div class="offre-section contact-section">
           <h2>Contacter l'agriculteur</h2>

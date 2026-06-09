@@ -457,6 +457,13 @@ npm start       # Mode production (node direct)
 
 Le serveur démarre sur **[http://localhost:3000](http://localhost:3000)**.
 
+### Comptes de test
+
+| Profil | E-mail | Mot de passe |
+|---|---|---|
+| Particulier | `testparticulier@mail.fr` | `SioSlam2026@` |
+| Agriculteur | `testagriculteur@mail.fr` | `SioSlam2026@` |
+
 ### Scripts disponibles
 
 | Commande | Description |
@@ -476,9 +483,15 @@ PORT=3000
 
 # Connexion à la base de données PostgreSQL
 DB_HOST=localhost
+DB_PORT=5432
 DB_USER=votre_utilisateur_postgresql
 DB_PASSWORD=votre_mot_de_passe
 DB_NAME=agri_connect
+DB_SSL=false
+
+# Pour Supabase distant, utiliser l'hôte et l'utilisateur fournis par Supabase,
+# puis activer SSL :
+# DB_SSL=true
 
 # Clé secrète pour signer les cookies de session
 # Générer une clé aléatoire avec la commande suivante :

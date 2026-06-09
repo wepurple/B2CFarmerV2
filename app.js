@@ -34,6 +34,7 @@ const demandesRoutes = require("./src/routes/demandes.routes");
 const compteRoutes = require("./src/routes/compte.routes");
 const panierRoutes = require("./src/routes/panier.routes");
 const commandesRoutes = require("./src/routes/commandes.routes");
+const promotionsRoutes = require("./src/routes/promotions.routes");
 
 // ── 1) Moteur de templates EJS ───────────────────────────────
 // EJS permet d'écrire des fichiers HTML avec du JavaScript intégré.
@@ -139,6 +140,9 @@ app.get("/", (req, res) => {
 
 // Routes des offres : toutes les URLs commençant par /offres
 app.use("/offres", offresRoutes);
+
+// Routes des promotions agriculteur : /offres/:id/promotions, /promotions/:id/edit
+app.use("/", promotionsRoutes);
 
 // Routes d'authentification : /auth/login, /auth/register, /auth/logout
 app.use("/auth", authRoutes);

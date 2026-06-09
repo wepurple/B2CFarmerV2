@@ -2015,6 +2015,26 @@ details[open] .home-faq-q { background: var(--cream-50); }
   margin-top: 1rem;
 }
 
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text-700);
+}
+
+.promotion-form {
+  margin-bottom: 1.5rem;
+}
+
+.promotion-actions {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .no-produits {
   font-size: .9rem;
   color: var(--text-muted);

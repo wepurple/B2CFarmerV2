@@ -21,6 +21,7 @@
 
 // Import du modèle (couche SQL)
 const offresModel = require('../models/offres.model');
+const promotionsModel = require('../models/promotions.model');
 
 
 /**
@@ -80,10 +81,22 @@ async function showOffre(req, res) {
       });
     }
 
+    const currentUser = req.session && req.session.user ? req.session.user : null;
+    const isOwner =
+      currentUser &&
+      currentUser.role === 'AGRICULTEUR' &&
+      Number(currentUser.id_user) === Number(offre.id_user_agri);
+    const promotions = isOwner
+      ? await promotionsModel.getPromotionsByOffre(id)
+      : [];
+
     res.render('offres/show', {
       title:          offre.titre,
       activePage:     'offres',
       offre,
+      promotions,
+      promotionSuccess: req.query.promotionSuccess || null,
+      promotionError:   req.query.promotionError || null,
       // Messages de succès/erreur pour le formulaire de contact
       // Ces valeurs viennent des query params (ex: ?contactSuccess=1)
       contactSuccess: req.query.contactSuccess === '1',
